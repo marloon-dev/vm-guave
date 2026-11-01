@@ -3,6 +3,8 @@ name = "vm-guave"
 version = "0.1.0"
 description = "VM Guave — gerenciador de máquinas virtuais (QEMU) para Windows e Linux"
 edition = "2021"
+license = "MIT"
+authors = ["Marlon Nunes Vieira"]
 
 [lib]
 name = "vm_guave_lib"

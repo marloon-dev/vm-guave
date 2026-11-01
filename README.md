@@ -261,3 +261,7 @@ Comparado com o que um virtualizador comercial completo oferece, separado pelo q
 - Bluetooth e webcam físicos do Mac na VM
 - Coherence (apps do convidado soltos no desktop do Mac) e aceleração 3D/DirectX
 - Toolbox de utilitários, gestão empresarial (SSO, SCIM, Jamf): produtos à parte
+
+## Licença
+
+[MIT](LICENSE) © 2026 Marlon Nunes Vieira
