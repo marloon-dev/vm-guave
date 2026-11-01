@@ -6,6 +6,22 @@ Gerenciador de máquinas virtuais para macOS (Apple Silicon), construído do zer
 Para **Windows e Linux** existe uma versão separada, em [`desktop/`](#windows-e-linux-desktop),
 feita em Tauri (Rust + HTML) sobre o QEMU.
 
+## Download
+
+Os instaladores ficam em **[Releases](https://github.com/marloon-dev/vm-guave/releases/latest)**:
+
+| Sistema | Arquivo | Observação |
+|---|---|---|
+| macOS (Apple Silicon) | `VMGuave-<versão>.dmg` | Abra e arraste **VM Guave** para Aplicativos. Assinatura ad-hoc: na primeira vez, clique com o botão direito → **Abrir** |
+| Windows 10/11 (x64) | `VM.Guave_<versão>_x64-setup.exe` | Instalador comum. O SmartScreen avisa: **Mais informações → Executar assim mesmo** |
+| Windows (empresas) | `VM.Guave_<versão>_x64_pt-BR.msi` | Para instalação por política de grupo |
+| Ubuntu / Debian | `VM.Guave_<versão>_amd64.deb` | `sudo apt install ./VM.Guave_*.deb` (já instala o QEMU) |
+| Fedora / RHEL | `VM.Guave-<versão>-1.x86_64.rpm` | `sudo dnf install ./VM.Guave-*.rpm` (já instala o QEMU) |
+| Qualquer Linux | `VM.Guave_<versão>_amd64.AppImage` | `chmod +x` e execute; instale o QEMU à parte |
+
+No Windows e no Linux o VM Guave usa o QEMU, que precisa estar instalado — veja
+[Windows e Linux](#windows-e-linux-desktop).
+
 ## Requisitos
 
 - Mac com Apple Silicon, macOS 14+
