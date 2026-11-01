@@ -6,6 +6,11 @@ Gerenciador de máquinas virtuais para macOS (Apple Silicon), construído do zer
 Para **Windows e Linux** existe uma versão separada, em [`desktop/`](#windows-e-linux-desktop),
 feita em Tauri (Rust + HTML) sobre o QEMU.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="site/assets/screenshots/app-detail-dark.png">
+  <img alt="Janela do VM Guave no Mac: barra lateral com a lista de VMs e o detalhe de uma VM Ubuntu em execução" src="site/assets/screenshots/app-detail-light.png">
+</picture>
+
 ## Download
 
 **Site: https://marloon-dev.github.io/vm-guave/**
@@ -23,6 +28,28 @@ Os instaladores ficam em **[Releases](https://github.com/marloon-dev/vm-guave/re
 
 No Windows e no Linux o VM Guave usa o QEMU, que precisa estar instalado — veja
 [Windows e Linux](#windows-e-linux-desktop).
+
+## Visual e atalhos
+
+Desde a versão 0.2.0 o app do Mac usa a identidade da goiaba (verde da casca, rosa da polpa,
+creme e verde-folha), nos modos claro e escuro:
+
+- **Barra lateral** com o logo, o botão **Nova VM** e a lista de VMs com ícone do sistema e
+  estado ao vivo (bolinha verde ligada, amarela pausada/suspensa).
+- **Tela inicial ilustrada** quando ainda não há VMs, com o botão **Criar primeira VM**.
+- **Detalhe da VM** com etiqueta colorida de estado e cartões de CPUs, memória, disco e snapshots.
+
+| Atalho | O que faz |
+|---|---|
+| ⌘N | Nova VM |
+| ⌃⌘F ou F11 | Entra e sai da tela cheia (também na janela da VM, com o teclado capturado) |
+
+Em teclado de Mac, a F11 controla o sistema por padrão: use **fn + F11** ou ative "Usar as teclas
+F1, F2 etc. como teclas de função padrão" em Ajustes do Sistema → Teclado. Dentro da VM, ⌃⌘F e
+F11 ficam com o VM Guave e não chegam ao sistema convidado.
+
+As cores e os componentes visuais (botão principal, etiqueta de estado, ilustrações) ficam em
+`Sources/BootGuave/Views/Theme.swift`.
 
 ## Requisitos
 
@@ -199,7 +226,7 @@ Sources/
     ├── VM/
     │   ├── VMConfigurationBuilder.swift  # VMConfig → VZVirtualMachineConfiguration (Linux e macOS)
     │   └── VMRunner.swift            # ciclo de vida, suspender, instalação do macOS
-    └── Views/                        # SwiftUI
+    └── Views/                        # SwiftUI (Theme.swift: cores, botões e ilustrações)
 ```
 
 As VMs ficam em `~/Library/Application Support/Boot Guave/VMs/<uuid>.bootguave/`:
@@ -258,7 +285,12 @@ Comparado com o que um virtualizador comercial completo oferece, separado pelo q
 - [x] Importar discos qcow2/vmdk/vdi/vhdx (conversão com qemu-img)
 - [x] Windows 11 ARM no motor QEMU (hvf + TPM 2.0 + NVMe), com controle via QMP
 
+**Versão 0.2.0 — feito**
+- [x] Novo visual com a identidade da goiaba (barra lateral, tela inicial ilustrada, detalhe da VM)
+- [x] Tela cheia por ⌃⌘F e F11
+
 **Fase 4 — possível**
+- [ ] Impedir duas cópias do app abertas ao mesmo tempo (hoje a segunda apaga o socket do `bgctl`)
 - [ ] USB do Mac na VM: a API existe no macOS 27 (`VZUSBPassthroughDevice`), mas exige a
       entitlement `com.apple.developer.accessory-access.usb` (Apple Developer Program)
 - [ ] Suspender VMs Windows (`savevm` do QEMU, disco qcow2)

@@ -58,6 +58,7 @@
       <nav aria-label="Principal">
         <ul class="nav-links">
           <li><a href="#recursos">Recursos</a></li>
+          <li><a href="#visual">Novo visual</a></li>
           <li><a href="#plataformas">Plataformas</a></li>
           <li><a href="#perguntas">Perguntas</a></li>
           <li><a href="https://github.com/marloon-dev/vm-guave" class="nav-github">
@@ -88,36 +89,15 @@
           <p class="cta-note" id="hero-note">Para Mac (Apple Silicon), Windows e Linux.</p>
         </div>
 
-        <!-- Ilustração da interface, feita em HTML -->
-        <div class="hero-visual" aria-hidden="true">
-          <div class="window">
-            <div class="window-bar"><i></i><i></i><i></i><span>VM Guave</span></div>
-            <div class="window-body">
-              <div class="mock-sidebar">
-                <div class="mock-vm active"><b class="dot on"></b>Fedora 44</div>
-                <div class="mock-vm"><b class="dot"></b>Ubuntu 26.04</div>
-                <div class="mock-vm"><b class="dot pause"></b>Windows 11</div>
-                <div class="mock-vm"><b class="dot"></b>macOS</div>
-              </div>
-              <div class="mock-main">
-                <div class="mock-head">
-                  <div>
-                    <strong>Fedora 44</strong>
-                    <span class="mock-badge">Em execução</span>
-                  </div>
-                  <span class="mock-btn">Desligar</span>
-                </div>
-                <div class="mock-screen">
-                  <div class="mock-desktop">
-                    <div class="mock-dock"><i></i><i></i><i></i><i></i><i></i></div>
-                  </div>
-                </div>
-                <div class="mock-facts">
-                  <span>4 CPUs</span><span>8 GB</span><span>64 GB</span><span>2 snapshots</span>
-                </div>
-              </div>
-            </div>
-          </div>
+        <!-- Captura real do app; troca com o tema do visitante -->
+        <div class="hero-visual">
+          <figure class="shot">
+            <picture>
+              <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/app-detail-dark.png">
+              <img src="assets/screenshots/app-detail-light.png" width="1600" height="1003"
+                   alt="Janela do VM Guave: barra lateral com três VMs e o detalhe de uma VM Ubuntu em execução, com cartões de CPU, memória, disco e snapshots">
+            </picture>
+          </figure>
           <img class="hero-fruit" src="assets/icon.png" alt="" width="180" height="180">
         </div>
       </div>
@@ -196,8 +176,32 @@
       </div>
     </section>
 
+    <!-- NOVO VISUAL -->
+    <section class="section section-alt" id="visual" aria-labelledby="visual-titulo">
+      <div class="container showcase">
+        <div class="showcase-copy reveal">
+          <p class="eyebrow">Novo na versão 0.2.0</p>
+          <h2 id="visual-titulo">Um visual feito para o dia a dia</h2>
+          <p>O VM Guave ganhou a identidade da goiaba, nos modos claro e escuro. Tudo o que importa fica à vista, sem menus escondidos.</p>
+          <ul class="checklist">
+            <li><strong>Comece em segundos.</strong> Sem nenhuma VM, a tela inicial leva direto ao botão <em>Criar primeira VM</em>.</li>
+            <li><strong>Estado ao vivo.</strong> Cada VM mostra na barra lateral se está ligada, pausada ou suspensa.</li>
+            <li><strong>Recursos de relance.</strong> CPUs, memória, disco e snapshots em cartões no topo de cada VM.</li>
+            <li><strong>Atalhos.</strong> <kbd>⌘</kbd><kbd>N</kbd> cria uma VM; <kbd>⌃</kbd><kbd>⌘</kbd><kbd>F</kbd> ou <kbd>F11</kbd> põem a VM em tela cheia.</li>
+          </ul>
+        </div>
+        <figure class="shot reveal">
+          <picture>
+            <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/app-empty-dark.png">
+            <img src="assets/screenshots/app-empty-light.png" width="1600" height="1003" loading="lazy"
+                 alt="Tela inicial do VM Guave sem VMs: ilustração de um cubo sobre uma base com folhas e o botão Criar primeira VM">
+          </picture>
+        </figure>
+      </div>
+    </section>
+
     <!-- COMO FUNCIONA -->
-    <section class="section section-alt" aria-labelledby="passos-titulo">
+    <section class="section" aria-labelledby="passos-titulo">
       <div class="container">
         <header class="section-head reveal">
           <p class="eyebrow">Como funciona</p>
