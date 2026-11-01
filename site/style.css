@@ -140,7 +140,7 @@ nav { margin-left: auto; }
 
 /* MARK: Hero */
 
-.hero { position: relative; overflow: hidden; padding: 72px 0 96px; }
+.hero { position: relative; overflow: hidden; padding: 72px 0 104px; }
 .hero::before {
   content: ""; position: absolute; inset: -20% -10% auto auto; width: 70vw; height: 70vw; max-width: 900px; max-height: 900px;
   background: radial-gradient(closest-side, color-mix(in srgb, var(--green) 22%, transparent), transparent 70%);
@@ -151,7 +151,10 @@ nav { margin-left: auto; }
   background: radial-gradient(closest-side, color-mix(in srgb, var(--pink) 14%, transparent), transparent 70%);
   pointer-events: none;
 }
-.hero-grid { position: relative; z-index: 1; display: grid; grid-template-columns: 1.02fr 1fr; gap: 56px; align-items: center; }
+.hero-inner { position: relative; z-index: 1; display: grid; justify-items: center; gap: 64px; }
+.hero-copy { text-align: center; max-width: 800px; }
+.hero-copy .lead { margin-inline: auto; }
+.hero-copy .cta { justify-content: center; }
 
 .pill {
   display: inline-flex; align-items: center; gap: 8px; margin: 0 0 22px;
@@ -169,15 +172,14 @@ h1 { font-size: clamp(42px, 6.2vw, 72px); font-weight: 800; letter-spacing: -.03
 .cta-note { margin: 14px 0 0; font-size: 14px; color: var(--ink-faint); }
 
 /* Captura do app */
-.hero-visual { position: relative; }
+.hero-visual { position: relative; width: 100%; max-width: 1080px; }
 .shot {
   margin: 0; border-radius: 14px; overflow: hidden;
   border: 1px solid var(--line); box-shadow: var(--shadow-lg); background: var(--surface);
 }
-.shot img { width: 100%; height: auto; }
-.hero-visual .shot { transform: perspective(1600px) rotateY(-6deg) rotateX(2deg); transform-origin: left center; }
+.shot picture, .shot img { display: block; width: 100%; height: auto; }
 .hero-fruit {
-  position: absolute; right: -44px; bottom: -56px; width: 128px; height: auto;
+  position: absolute; right: -14px; bottom: -40px; width: clamp(84px, 11vw, 140px); height: auto;
   filter: drop-shadow(0 18px 24px rgb(27 34 25 / .22));
   animation: float 6s ease-in-out infinite;
 }
@@ -333,7 +335,6 @@ kbd {
   html { scroll-behavior: auto; }
   .js .reveal { opacity: 1; transform: none; transition: none; }
   .hero-fruit { animation: none; }
-  .hero-visual .shot { transform: none; }
   .btn, .feature { transition: none; }
 }
 
@@ -347,12 +348,9 @@ kbd {
 
 @media (max-width: 880px) {
   .hero { padding: 48px 0 72px; }
-  .hero-grid { grid-template-columns: 1fr; gap: 48px; }
-  .hero-copy { text-align: center; }
-  .lead { margin-inline: auto; }
+  .hero-inner { gap: 44px; }
   .cta { justify-content: center; }
-  .hero-visual .shot { transform: none; }
-  .hero-fruit { width: 96px; right: -6px; bottom: -40px; }
+  .hero-fruit { right: -6px; bottom: -28px; }
   .steps { grid-template-columns: 1fr; }
   .showcase { grid-template-columns: 1fr; gap: 36px; }
   .showcase .shot { order: -1; }

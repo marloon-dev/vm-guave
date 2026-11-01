@@ -73,7 +73,7 @@
   <main id="conteudo">
     <!-- HERO -->
     <section class="hero" id="topo">
-      <div class="container hero-grid">
+      <div class="container hero-inner">
         <div class="hero-copy">
           <p class="pill"><span class="pill-dot" aria-hidden="true"></span> <span data-version>Nova versão</span> · grátis e de código aberto</p>
           <h1>Outro sistema, <span class="accent">sem sair do seu.</span></h1>
@@ -89,12 +89,17 @@
           <p class="cta-note" id="hero-note">Para Mac (Apple Silicon), Windows e Linux.</p>
         </div>
 
-        <!-- Captura real do app; troca com o tema do visitante -->
+        <!-- Captura real do app: troca com o tema do visitante; srcset escolhe a largura certa para a tela -->
         <div class="hero-visual">
           <figure class="shot">
             <picture>
-              <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/app-detail-dark.png">
-              <img src="assets/screenshots/app-detail-light.png" width="1600" height="1003"
+              <source media="(prefers-color-scheme: dark)"
+                      srcset="assets/screenshots/app-detail-dark-800.png 800w, assets/screenshots/app-detail-dark-1200.png 1200w, assets/screenshots/app-detail-dark-1600.png 1600w, assets/screenshots/app-detail-dark-2360.png 2360w"
+                      sizes="(min-width: 1180px) 1080px, calc(100vw - 40px)">
+              <img src="assets/screenshots/app-detail-light-1600.png"
+                   srcset="assets/screenshots/app-detail-light-800.png 800w, assets/screenshots/app-detail-light-1200.png 1200w, assets/screenshots/app-detail-light-1600.png 1600w, assets/screenshots/app-detail-light-2360.png 2360w"
+                   sizes="(min-width: 1180px) 1080px, calc(100vw - 40px)"
+                   width="1600" height="976" fetchpriority="high" decoding="async"
                    alt="Janela do VM Guave: barra lateral com três VMs e o detalhe de uma VM Ubuntu em execução, com cartões de CPU, memória, disco e snapshots">
             </picture>
           </figure>
@@ -192,8 +197,13 @@
         </div>
         <figure class="shot reveal">
           <picture>
-            <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/app-empty-dark.png">
-            <img src="assets/screenshots/app-empty-light.png" width="1600" height="1003" loading="lazy"
+            <source media="(prefers-color-scheme: dark)"
+                    srcset="assets/screenshots/app-empty-dark-800.png 800w, assets/screenshots/app-empty-dark-1200.png 1200w, assets/screenshots/app-empty-dark-1600.png 1600w, assets/screenshots/app-empty-dark-2360.png 2360w"
+                    sizes="(min-width: 1180px) 620px, (min-width: 881px) 54vw, calc(100vw - 40px)">
+            <img src="assets/screenshots/app-empty-light-1600.png"
+                 srcset="assets/screenshots/app-empty-light-800.png 800w, assets/screenshots/app-empty-light-1200.png 1200w, assets/screenshots/app-empty-light-1600.png 1600w, assets/screenshots/app-empty-light-2360.png 2360w"
+                 sizes="(min-width: 1180px) 620px, (min-width: 881px) 54vw, calc(100vw - 40px)"
+                 width="1600" height="1003" loading="lazy" decoding="async"
                  alt="Tela inicial do VM Guave sem VMs: ilustração de um cubo sobre uma base com folhas e o botão Criar primeira VM">
           </picture>
         </figure>
