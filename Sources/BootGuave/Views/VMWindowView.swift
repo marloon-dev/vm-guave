@@ -10,6 +10,7 @@ struct VMWindowView: View {
     @State private var frameBeforePiP: NSRect?
     @State private var dropTargeted = false
     @State private var dropMessage: String?
+    @State private var keyMonitor: Any?
 
     var body: some View {
         Group {
@@ -64,6 +65,11 @@ struct VMWindowView: View {
             copyToSharedFolder(urls)
         } isTargeted: { dropTargeted = $0 }
         .background(WindowAccessor(window: $window))
+        .onAppear(perform: installFullScreenShortcut)
+        .onDisappear {
+            if let keyMonitor { NSEvent.removeMonitor(keyMonitor) }
+            keyMonitor = nil
+        }
         .navigationTitle(runner.config.name)
         .toolbar {
             ToolbarItemGroup {
@@ -85,7 +91,22 @@ struct VMWindowView: View {
                     Label("Tela cheia", systemImage: "arrow.up.left.and.arrow.down.right")
                 }
                 .disabled(pictureInPicture)
+                .help("Tela cheia (⌃⌘F ou F11)")
             }
+        }
+    }
+
+    /// ⌃⌘F entra e sai da tela cheia (a F11 é tratada no AppDelegate, para todas as janelas). A tela da VM captura o teclado (capturesSystemKeys) e
+    /// mandaria o atalho ao convidado, então ele é pego antes, por um monitor local.
+    private func installFullScreenShortcut() {
+        guard keyMonitor == nil else { return }
+        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+            guard let window, event.window === window, !pictureInPicture,
+                  flags == [.control, .command], event.charactersIgnoringModifiers?.lowercased() == "f"
+            else { return event }
+            window.toggleFullScreen(nil)
+            return nil
         }
     }
 

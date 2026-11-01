@@ -30,14 +30,19 @@ struct VMDetailView: View {
         Form {
             Section {
                 HStack(spacing: 14) {
-                    Image(systemName: config.os.symbol)
-                        .font(.system(size: 34))
-                        .frame(width: 48)
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(config.name).font(.title2.bold())
-                        StatusBadge(state: runner.state)
+                    OSTile(os: config.os, size: 56)
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(config.name).font(.title.bold())
+                        StatusPill(state: runner.state)
                     }
                     Spacer()
+                }
+                .padding(.vertical, 4)
+                HStack(spacing: 10) {
+                    StatTile(title: "CPUs", value: "\(config.cpuCount)", symbol: "cpu")
+                    StatTile(title: "Memória", value: "\(config.memoryGB) GB", symbol: "memorychip")
+                    StatTile(title: "Disco", value: "\(config.diskGB) GB", symbol: "internaldrive")
+                    StatTile(title: "Snapshots", value: isLocked ? "—" : "\(snapshots.count)", symbol: "clock.arrow.circlepath")
                 }
                 if config.encrypted {
                     HStack {
@@ -100,9 +105,6 @@ struct VMDetailView: View {
 
             Section("Configuração") {
                 LabeledContent("Sistema", value: config.os.displayName)
-                LabeledContent("CPUs", value: "\(config.cpuCount)")
-                LabeledContent("Memória", value: "\(config.memoryGB) GB")
-                LabeledContent("Disco", value: "\(config.diskGB) GB")
                 LabeledContent("Rede", value: networkSummary)
                 if !config.extraDisks.isEmpty {
                     LabeledContent("Discos adicionais", value: config.extraDisks.map { "\($0.sizeGB) GB" }.joined(separator: ", "))
@@ -338,14 +340,14 @@ struct VMDetailView: View {
             Button { runner.installMacOS() } label: {
                 Label("Instalar macOS", systemImage: "arrow.down.circle")
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(GuaveButtonStyle())
         } else {
             Button {
                 start()
             } label: {
                 Label(runner.state == .suspended ? "Retomar" : "Iniciar", systemImage: "play.fill")
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(GuaveButtonStyle())
         }
         Button { showingSettings = true } label: { Label("Configurações…", systemImage: "slider.horizontal.3") }
         Menu {
@@ -446,22 +448,32 @@ struct VMDetailView: View {
 struct StatusBadge: View {
     let state: VMRunState
 
-    private var color: Color {
-        switch state {
-        case .running: return .green
-        case .starting, .stopping, .saving: return .orange
-        case .downloading, .installing: return .blue
-        case .paused, .suspended: return .yellow
-        case .error: return .red
-        case .stopped: return .secondary
-        }
-    }
-
     var body: some View {
         HStack(spacing: 6) {
-            Circle().fill(color).frame(width: 8, height: 8)
+            Circle().fill(state.color).frame(width: 8, height: 8)
             Text(state.label).font(.callout).foregroundStyle(.secondary)
         }
     }
 }
 
+/// Cartão pequeno com um dado da VM (CPU, memória…).
+private struct StatTile: View {
+    let title: String
+    let value: String
+    let symbol: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Label(title, systemImage: symbol)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Text(value)
+                .font(.title3.weight(.semibold))
+                .monospacedDigit()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Brand.tileBackground))
+    }
+}

@@ -26,11 +26,28 @@ struct BootGuaveApp: App {
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    private var fullScreenKeyMonitor: Any?
+
     func applicationDidFinishLaunching(_ notification: Notification) {
+        installF11FullScreen()
         ControlServer.shared.start { request in
             await ControlCommands.handle(request, library: .shared)
         }
         VMLibrary.shared.startAutoStartVMs()
+    }
+
+    /// F11 alterna a tela cheia de qualquer janela, como no Windows e no Linux. O monitor local
+    /// pega a tecla antes da tela da VM, que captura o teclado para o convidado.
+    private func installF11FullScreen() {
+        let f11: UInt16 = 103 // kVK_F11
+        fullScreenKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask).subtracting(.function)
+            guard event.keyCode == f11, flags.isEmpty, let window = event.window,
+                  window.level == .normal // o Picture in Picture usa .floating
+            else { return event }
+            window.toggleFullScreen(nil)
+            return nil
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
