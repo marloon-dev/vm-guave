@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VM Guave</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><img src="icon.png" alt=""> VM Guave</div>
+    <button id="new-vm" class="primary">+ Nova VM</button>
+  </header>
+
+  <div id="warnings"></div>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <ul id="vm-list"></ul>
+      <p id="empty-list" class="muted hidden">Nenhuma VM ainda.</p>
+      <footer id="host-summary" class="muted small"></footer>
+    </aside>
+
+    <section id="detail" class="detail">
+      <div id="placeholder" class="placeholder">
+        <img src="icon.png" alt="">
+        <p>Crie uma VM com <strong>+ Nova VM</strong> para começar.</p>
+      </div>
+
+      <div id="vm-detail" class="hidden">
+        <div class="detail-head">
+          <div>
+            <h1 id="d-name"></h1>
+            <span id="d-state" class="badge"></span>
+          </div>
+          <div class="actions" id="power-actions"></div>
+        </div>
+
+        <dl class="facts">
+          <div><dt>Sistema</dt><dd id="d-os"></dd></div>
+          <div><dt>CPUs</dt><dd id="d-cpus"></dd></div>
+          <div><dt>Memória</dt><dd id="d-mem"></dd></div>
+          <div><dt>Disco</dt><dd id="d-disk"></dd></div>
+          <div class="wide"><dt>ISO</dt><dd id="d-iso"></dd></div>
+          <div class="wide"><dt>Portas</dt><dd id="d-ports"></dd></div>
+        </dl>
+
+        <p class="muted small" id="d-hint"></p>
+
+        <div class="row">
+          <button id="edit-vm">Configurações…</button>
+          <button id="open-folder">Abrir pasta</button>
+          <button id="delete-vm" class="danger">Excluir</button>
+        </div>
+
+        <h2>Snapshots</h2>
+        <p class="muted small">Guardam o disco como está agora. Só com a VM desligada.</p>
+        <form id="snapshot-form" class="row">
+          <input id="snapshot-name" placeholder="Nome do snapshot" maxlength="60">
+          <button type="submit">Criar snapshot</button>
+        </form>
+        <ul id="snapshot-list" class="snapshots"></ul>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="vm-dialog">
+    <form id="vm-form" method="dialog">
+      <h2 id="dialog-title">Nova VM</h2>
+      <label>Nome <input name="name" required maxlength="60"></label>
+      <label>Sistema
+        <select name="os">
+          <option value="linux">Linux</option>
+          <option value="windows">Windows</option>
+        </select>
+      </label>
+      <label>ISO de instalação
+        <span class="picker">
+          <input name="iso" placeholder="Nenhuma" readonly>
+          <button type="button" id="pick-iso">Escolher…</button>
+          <button type="button" id="clear-iso" title="Remover ISO">✕</button>
+        </span>
+      </label>
+      <div class="grid3">
+        <label>CPUs <input name="cpus" type="number" min="1" required></label>
+        <label>Memória (GB) <input name="memoryGb" type="number" min="1" max="512" required></label>
+        <label>Disco (GB) <input name="diskGb" type="number" min="8" max="4096" required></label>
+      </div>
+      <div id="edit-only" class="hidden">
+        <label class="check"><input name="uefi" type="checkbox"> UEFI (necessário para Windows 11)</label>
+        <label>Redirecionar portas <span class="muted small">(computador:VM, uma por linha — ex.: 2222:22)</span>
+          <textarea name="ports" rows="3" placeholder="2222:22"></textarea>
+        </label>
+      </div>
+      <p id="dialog-note" class="muted small"></p>
+      <p id="dialog-error" class="error hidden"></p>
+      <div class="row end">
+        <button type="button" id="cancel-dialog">Cancelar</button>
+        <button type="submit" class="primary" id="save-dialog">Criar VM</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

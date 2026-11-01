@@ -3,6 +3,9 @@
 Gerenciador de máquinas virtuais para macOS (Apple Silicon), construído do zero sobre o
 `Virtualization.framework` da Apple, em Swift + SwiftUI.
 
+Para **Windows e Linux** existe uma versão separada, em [`desktop/`](#windows-e-linux-desktop),
+feita em Tauri (Rust + HTML) sobre o QEMU.
+
 ## Requisitos
 
 - Mac com Apple Silicon, macOS 14+
@@ -22,7 +25,7 @@ O script compila com SwiftPM, monta o `VM Guave.app` e assina ad-hoc com a entit
 ## Instalador (.dmg)
 
 ```bash
-./scripts/make-dmg.sh           # gera build/BootGuave-<versão>.dmg
+./scripts/make-dmg.sh           # gera build/VMGuave-<versão>.dmg
 ```
 
 Abra o DMG e arraste **VM Guave** para **Aplicativos**. A versão vem de
@@ -34,8 +37,51 @@ e notarização:
 
 ```bash
 SIGN_IDENTITY="Developer ID Application: Seu Nome (TEAMID)" ./scripts/make-dmg.sh
-xcrun notarytool submit build/BootGuave-0.1.0.dmg --keychain-profile <perfil> --wait
-xcrun stapler staple build/BootGuave-0.1.0.dmg
+xcrun notarytool submit build/VMGuave-0.1.0.dmg --keychain-profile <perfil> --wait
+xcrun stapler staple build/VMGuave-0.1.0.dmg
+```
+
+## Windows e Linux (`desktop/`)
+
+App multiplataforma em [Tauri 2](https://tauri.app) que cria e executa VMs com QEMU:
+**KVM** no Linux, **WHPX** (Plataforma do Hipervisor) no Windows, com queda automática
+para emulação se a aceleração não estiver disponível. O app do Mac continua sendo o Swift acima.
+
+O que faz: criar VM Linux/Windows a partir de uma ISO (disco qcow2 que cresce conforme o
+uso, NVMe, UEFI via OVMF), ligar/desligar/forçar, pausar/continuar, reiniciar, snapshots do
+disco, redirecionar portas e aumentar o disco. A tela da VM abre numa janela própria do QEMU.
+O estado vem do QEMU via QMP, então fechar e reabrir o app não perde o controle das VMs ligadas.
+
+**O QEMU não vem junto** e precisa estar instalado:
+
+- **Windows:** instalador de [qemu.org/download](https://www.qemu.org/download/#windows) na
+  pasta padrão, e ativar *Plataforma do Hipervisor do Windows* em "Ativar ou desativar
+  recursos do Windows" (sem isso as VMs ficam muito lentas).
+- **Linux:** o `.deb`/`.rpm` já puxa `qemu-system-x86`, `qemu-utils`/`qemu-img` e o OVMF.
+  Com o AppImage: `sudo apt install qemu-system-x86 qemu-utils ovmf`. Para usar o KVM:
+  `sudo usermod -aG kvm $USER` e entrar de novo na sessão.
+
+As VMs ficam em `%APPDATA%\VM Guave\VMs` (Windows) ou `~/.local/share/vm-guave/VMs` (Linux).
+
+### Instaladores
+
+São gerados pelo GitHub Actions (`.github/workflows/desktop.yml`), em máquinas Windows e Linux:
+
+- **Aba Actions → "Instaladores Windows e Linux" → Run workflow**: os arquivos ficam nos
+  *Artifacts* da execução (`.exe`, `.msi`, `.deb`, `.rpm`, `.AppImage`).
+- **Tag de versão** (`git tag v0.1.0 && git push --tags`): além disso, cria um rascunho de
+  *Release* com os instaladores anexados.
+
+Os instaladores não são assinados: o Windows mostra o aviso do SmartScreen ("Mais
+informações → Executar assim mesmo").
+
+### Desenvolver
+
+```bash
+cd desktop
+npm install
+npm run dev                     # abre o app (no Mac usa o QEMU do Homebrew com hvf)
+cd src-tauri && cargo test      # testes; com VMGUAVE_TEST_ISO=<iso> e --ignored liga uma VM real
 ```
 
 ## VMs macOS
