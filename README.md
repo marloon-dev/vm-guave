@@ -8,6 +8,8 @@ feita em Tauri (Rust + HTML) sobre o QEMU.
 
 ## Download
 
+**Site: https://marloon-dev.github.io/vm-guave/**
+
 Os instaladores ficam em **[Releases](https://github.com/marloon-dev/vm-guave/releases/latest)**:
 
 | Sistema | Arquivo | Observação |
@@ -90,6 +92,13 @@ São gerados pelo GitHub Actions (`.github/workflows/desktop.yml`), em máquinas
 
 Os instaladores não são assinados: o Windows mostra o aviso do SmartScreen ("Mais
 informações → Executar assim mesmo").
+
+### Site
+
+O site de lançamento fica em `site/` (HTML, CSS e JS puros) e é publicado no GitHub Pages
+pelo workflow `.github/workflows/pages.yml` a cada alteração na `main`. Os botões de download
+buscam os arquivos da última Release pela API do GitHub, então não é preciso editar o site a
+cada versão. Para ver localmente: `python3 -m http.server -d site` e abrir http://localhost:8000.
 
 ### Desenvolver
 

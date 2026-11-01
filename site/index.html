@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VM Guave — Máquinas virtuais para Mac, Windows e Linux</title>
+  <meta name="description" content="Rode Linux, Windows e macOS em máquinas virtuais, lado a lado com o seu sistema. Grátis e de código aberto, para Mac (Apple Silicon), Windows e Linux.">
+  <link rel="canonical" href="https://marloon-dev.github.io/vm-guave/">
+  <meta name="theme-color" content="#fbf8f1" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#141712" media="(prefers-color-scheme: dark)">
+  <meta name="color-scheme" content="light dark">
+
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:site_name" content="VM Guave">
+  <meta property="og:title" content="VM Guave — Máquinas virtuais para Mac, Windows e Linux">
+  <meta property="og:description" content="Rode Linux, Windows e macOS lado a lado com o seu sistema. Grátis e de código aberto.">
+  <meta property="og:url" content="https://marloon-dev.github.io/vm-guave/">
+  <meta property="og:image" content="https://marloon-dev.github.io/vm-guave/assets/og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Logo do VM Guave, uma goiaba cortada, com o texto Máquinas virtuais para Mac, Windows e Linux">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="style.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "VM Guave",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "macOS 14+, Windows 10/11, Linux",
+    "description": "Gerenciador de máquinas virtuais grátis e de código aberto para Mac, Windows e Linux.",
+    "license": "https://opensource.org/licenses/MIT",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+    "downloadUrl": "https://github.com/marloon-dev/vm-guave/releases/latest",
+    "author": { "@type": "Person", "name": "Marlon Nunes Vieira" }
+  }
+  </script>
+  <script>document.documentElement.classList.add("js")</script>
+</head>
+<body>
+  <a class="skip" href="#conteudo">Pular para o conteúdo</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="logo" href="#topo" aria-label="VM Guave, início">
+        <img src="assets/icon.png" alt="" width="36" height="36">
+        <span>VM Guave</span>
+      </a>
+      <nav aria-label="Principal">
+        <ul class="nav-links">
+          <li><a href="#recursos">Recursos</a></li>
+          <li><a href="#plataformas">Plataformas</a></li>
+          <li><a href="#perguntas">Perguntas</a></li>
+          <li><a href="https://github.com/marloon-dev/vm-guave" class="nav-github">
+            <svg aria-hidden="true" viewBox="0 0 16 16" width="18" height="18"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.06-.49.06-.49.8.06 1.23.83 1.23.83.72 1.22 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.65-.89-3.65-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+            <span>GitHub</span></a></li>
+        </ul>
+      </nav>
+      <a class="btn btn-small btn-primary" href="#download">Baixar</a>
+    </div>
+  </header>
+
+  <main id="conteudo">
+    <!-- HERO -->
+    <section class="hero" id="topo">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="pill"><span class="pill-dot" aria-hidden="true"></span> <span data-version>Nova versão</span> · grátis e de código aberto</p>
+          <h1>Outro sistema, <span class="accent">sem sair do seu.</span></h1>
+          <p class="lead">O VM Guave roda Linux, Windows e macOS em máquinas virtuais, numa janela ao lado dos seus apps. Crie uma VM a partir de uma ISO em poucos cliques. Tudo fica no seu computador.</p>
+
+          <div class="cta">
+            <a class="btn btn-primary btn-large" id="hero-download" href="#download">
+              <span class="btn-icon" data-os-icon aria-hidden="true"></span>
+              <span id="hero-label">Baixar o VM Guave</span>
+            </a>
+            <a class="btn btn-ghost btn-large" href="#plataformas">Ver plataformas</a>
+          </div>
+          <p class="cta-note" id="hero-note">Para Mac (Apple Silicon), Windows e Linux.</p>
+        </div>
+
+        <!-- Ilustração da interface, feita em HTML -->
+        <div class="hero-visual" aria-hidden="true">
+          <div class="window">
+            <div class="window-bar"><i></i><i></i><i></i><span>VM Guave</span></div>
+            <div class="window-body">
+              <div class="mock-sidebar">
+                <div class="mock-vm active"><b class="dot on"></b>Fedora 44</div>
+                <div class="mock-vm"><b class="dot"></b>Ubuntu 26.04</div>
+                <div class="mock-vm"><b class="dot pause"></b>Windows 11</div>
+                <div class="mock-vm"><b class="dot"></b>macOS</div>
+              </div>
+              <div class="mock-main">
+                <div class="mock-head">
+                  <div>
+                    <strong>Fedora 44</strong>
+                    <span class="mock-badge">Em execução</span>
+                  </div>
+                  <span class="mock-btn">Desligar</span>
+                </div>
+                <div class="mock-screen">
+                  <div class="mock-desktop">
+                    <div class="mock-dock"><i></i><i></i><i></i><i></i><i></i></div>
+                  </div>
+                </div>
+                <div class="mock-facts">
+                  <span>4 CPUs</span><span>8 GB</span><span>64 GB</span><span>2 snapshots</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <img class="hero-fruit" src="assets/icon.png" alt="" width="180" height="180">
+        </div>
+      </div>
+    </section>
+
+    <!-- TECNOLOGIAS -->
+    <section class="tech" aria-label="Tecnologias usadas">
+      <div class="container tech-row">
+        <span>Construído sobre</span>
+        <ul>
+          <li>Apple Virtualization</li>
+          <li>QEMU</li>
+          <li>KVM</li>
+          <li>Windows Hypervisor Platform</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- RECURSOS -->
+    <section class="section" id="recursos" aria-labelledby="recursos-titulo">
+      <div class="container">
+        <header class="section-head reveal">
+          <p class="eyebrow">Recursos</p>
+          <h2 id="recursos-titulo">Tudo o que você precisa para usar uma VM no dia a dia</h2>
+          <p>Sem configurações complicadas: escolha o sistema, a memória e o disco, e clique em Iniciar.</p>
+        </header>
+
+        <ul class="features">
+          <li class="feature reveal">
+            <span class="f-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 8v4l2.5 2.5M3.5 12a8.5 8.5 0 1 0 2.6-6.1M3 4v4h4"/></svg></span>
+            <h3>Snapshots</h3>
+            <p>Guarde o estado da VM antes de testar algo arriscado e volte em segundos se der errado.</p>
+          </li>
+          <li class="feature reveal">
+            <span class="f-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></svg></span>
+            <h3>Suspender e retomar</h3>
+            <p>Feche o app e continue depois exatamente de onde parou, com os programas abertos.</p>
+            <span class="tag">Mac</span>
+          </li>
+          <li class="feature reveal">
+            <span class="f-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>
+            <h3>VM criptografada</h3>
+            <p>Proteja o disco da VM com AES-256 e senha. A senha pode ficar no Keychain.</p>
+            <span class="tag">Mac</span>
+          </li>
+          <li class="feature reveal">
+            <span class="f-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="m8.2 11 7.6-3.8M8.2 13l7.6 3.8"/></svg></span>
+            <h3>Rede e portas</h3>
+            <p>Internet pronta para uso, IP fixo e redirecionamento de portas para acessar serviços da VM.</p>
+          </li>
+          <li class="feature reveal">
+            <span class="f-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M12 11v5M9.5 13.5 12 16l2.5-2.5"/></svg></span>
+            <h3>Pasta compartilhada</h3>
+            <p>Arraste arquivos do Finder para a janela da VM e use a mesma pasta nos dois sistemas.</p>
+            <span class="tag">Mac</span>
+          </li>
+          <li class="feature reveal">
+            <span class="f-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3M13 15h4"/></svg></span>
+            <h3>Linha de comando</h3>
+            <p>Automatize com o <code>bgctl</code>: ligar, suspender, snapshots, clonar, exportar e mais.</p>
+            <span class="tag">Mac</span>
+          </li>
+          <li class="feature reveal">
+            <span class="f-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg></span>
+            <h3>Clonar e exportar</h3>
+            <p>Duplique uma VM pronta em instantes ou faça backup dela num disco externo.</p>
+            <span class="tag">Mac</span>
+          </li>
+          <li class="feature reveal">
+            <span class="f-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v12M7.5 10.5 12 15l4.5-4.5M4 19h16"/></svg></span>
+            <h3>Downloads guiados</h3>
+            <p>Baixe Ubuntu, Fedora ou Debian direto do app, sempre na versão mais recente.</p>
+            <span class="tag">Mac</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- COMO FUNCIONA -->
+    <section class="section section-alt" aria-labelledby="passos-titulo">
+      <div class="container">
+        <header class="section-head reveal">
+          <p class="eyebrow">Como funciona</p>
+          <h2 id="passos-titulo">Da instalação à primeira VM em três passos</h2>
+        </header>
+        <ol class="steps">
+          <li class="step reveal">
+            <span class="step-n">1</span>
+            <h3>Instale</h3>
+            <p>Baixe o instalador para o seu sistema logo abaixo. É gratuito e não pede cadastro.</p>
+          </li>
+          <li class="step reveal">
+            <span class="step-n">2</span>
+            <h3>Crie a VM</h3>
+            <p>Clique em <strong>+ Nova VM</strong>, escolha a ISO do sistema e quanto de CPU, memória e disco ela pode usar.</p>
+          </li>
+          <li class="step reveal">
+            <span class="step-n">3</span>
+            <h3>Inicie</h3>
+            <p>Clique em <strong>Iniciar</strong> e instale o sistema como num computador novo. Pronto.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- PLATAFORMAS -->
+    <section class="section" id="plataformas" aria-labelledby="plataformas-titulo">
+      <div class="container">
+        <header class="section-head reveal">
+          <p class="eyebrow">Plataformas</p>
+          <h2 id="plataformas-titulo">Um app para cada sistema</h2>
+          <p>No Mac, o VM Guave é nativo e usa a virtualização da Apple. No Windows e no Linux, usa o QEMU com aceleração por hardware.</p>
+        </header>
+
+        <div class="table-wrap reveal">
+          <table class="compare">
+            <caption class="sr-only">Recursos disponíveis em cada plataforma</caption>
+            <thead>
+              <tr><th scope="col">Recurso</th><th scope="col">Mac</th><th scope="col">Windows e Linux</th></tr>
+            </thead>
+            <tbody>
+              <tr><th scope="row">VMs Linux</th><td class="yes">Sim</td><td class="yes">Sim</td></tr>
+              <tr><th scope="row">VMs Windows</th><td class="yes">Windows 11 ARM</td><td class="yes">Windows 10 e 11</td></tr>
+              <tr><th scope="row">VMs macOS</th><td class="yes">Sim</td><td class="no">Não</td></tr>
+              <tr><th scope="row">Snapshots</th><td class="yes">Sim</td><td class="yes">Sim</td></tr>
+              <tr><th scope="row">Pausar, reiniciar, desligar</th><td class="yes">Sim</td><td class="yes">Sim</td></tr>
+              <tr><th scope="row">Redirecionamento de portas</th><td class="yes">Sim</td><td class="yes">Sim</td></tr>
+              <tr><th scope="row">Suspender e retomar</th><td class="yes">Sim</td><td class="no">Não</td></tr>
+              <tr><th scope="row">Criptografia, clonar, exportar</th><td class="yes">Sim</td><td class="no">Não</td></tr>
+              <tr><th scope="row">Pasta compartilhada e área de transferência</th><td class="yes">Sim</td><td class="no">Não</td></tr>
+              <tr><th scope="row">Aceleração</th><td>Apple Virtualization</td><td>KVM (Linux) · WHPX (Windows)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- DOWNLOAD -->
+    <section class="section section-download" id="download" aria-labelledby="download-titulo">
+      <div class="container">
+        <header class="section-head reveal">
+          <p class="eyebrow">Download</p>
+          <h2 id="download-titulo">Baixe o VM Guave</h2>
+          <p><span data-version>Última versão</span> · <a href="https://github.com/marloon-dev/vm-guave/releases">todas as versões</a></p>
+        </header>
+
+        <div class="downloads">
+          <article class="dl-card reveal" id="dl-mac" data-os="mac">
+            <span class="recommended">Recomendado para você</span>
+            <div class="dl-head">
+              <svg class="os-logo" aria-hidden="true" viewBox="0 0 24 24"><path fill="currentColor" d="M16.4 12.6c0-2.4 2-3.6 2.1-3.7-1.2-1.7-3-1.9-3.6-2-1.5-.2-3 .9-3.8.9-.8 0-2-.9-3.3-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.3-.8s2 .8 3.3.8c1.4 0 2.3-1.3 3.1-2.5 1-1.4 1.4-2.8 1.4-2.9 0 0-2.8-1.1-2.8-4.3ZM13.9 5.3c.7-.8 1.2-2 1-3.2-1 .1-2.2.7-3 1.5-.6.7-1.2 1.9-1 3.1 1.1.1 2.3-.6 3-1.4Z"/></svg>
+              <div>
+                <h3>macOS</h3>
+                <p class="req">Apple Silicon (M1 ou mais novo) · macOS 14+</p>
+              </div>
+            </div>
+            <a class="btn btn-primary btn-block" data-asset="dmg" href="https://github.com/marloon-dev/vm-guave/releases/latest">Baixar .dmg <span class="size"></span></a>
+            <ol class="install">
+              <li>Abra o <code>.dmg</code> e arraste o VM Guave para <strong>Aplicativos</strong>.</li>
+              <li>Na primeira vez, clique com o botão direito no app e escolha <strong>Abrir</strong>.</li>
+            </ol>
+          </article>
+
+          <article class="dl-card reveal" id="dl-windows" data-os="windows">
+            <span class="recommended">Recomendado para você</span>
+            <div class="dl-head">
+              <svg class="os-logo" aria-hidden="true" viewBox="0 0 24 24"><path fill="currentColor" d="M3 5.1 10.4 4v7.1H3V5.1Zm8.3-1.2L21 2.5v8.6h-9.7V3.9ZM3 12.9h7.4V20L3 18.9v-6Zm8.3 0H21v8.6l-9.7-1.4v-7.2Z"/></svg>
+              <div>
+                <h3>Windows</h3>
+                <p class="req">Windows 10 ou 11 · 64 bits (x64)</p>
+              </div>
+            </div>
+            <a class="btn btn-primary btn-block" data-asset="exe" href="https://github.com/marloon-dev/vm-guave/releases/latest">Baixar instalador <span class="size"></span></a>
+            <a class="alt-link" data-asset="msi" href="https://github.com/marloon-dev/vm-guave/releases/latest">Pacote .msi para empresas</a>
+            <ol class="install">
+              <li>Instale o <a href="https://www.qemu.org/download/#windows">QEMU</a> na pasta padrão.</li>
+              <li>Ative <strong>Plataforma do Hipervisor do Windows</strong> em “Ativar ou desativar recursos do Windows”.</li>
+              <li>Se o SmartScreen avisar, clique em <strong>Mais informações → Executar assim mesmo</strong>.</li>
+            </ol>
+          </article>
+
+          <article class="dl-card reveal" id="dl-linux" data-os="linux">
+            <span class="recommended">Recomendado para você</span>
+            <div class="dl-head">
+              <svg class="os-logo" aria-hidden="true" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2c-2.2 0-3.6 1.9-3.6 4.6 0 1.3.3 2.2-.4 3.6-1 1.9-2.9 4.3-2.9 6.6 0 .8.2 1.4.6 1.9-.5.4-1.2.6-1.2 1.4 0 1 1.5 1.3 3.4 1.6 1.2.2 2 .4 2.6.4.6 0 .9-.2 1.5-.2s.9.2 1.5.2c.6 0 1.4-.2 2.6-.4 1.9-.3 3.4-.6 3.4-1.6 0-.8-.7-1-1.2-1.4.4-.5.6-1.1.6-1.9 0-2.3-1.9-4.7-2.9-6.6-.7-1.4-.4-2.3-.4-3.6C15.6 3.9 14.2 2 12 2Zm-1.6 4.3c.4 0 .7.5.7 1.1 0 .6-.3 1.1-.7 1.1s-.7-.5-.7-1.1c0-.6.3-1.1.7-1.1Zm3.2 0c.4 0 .7.5.7 1.1 0 .6-.3 1.1-.7 1.1s-.7-.5-.7-1.1c0-.6.3-1.1.7-1.1ZM12 9.3c.9 0 2 .6 2 1.1 0 .4-1.1 1-2 1s-2-.6-2-1c0-.5 1.1-1.1 2-1.1Z"/></svg>
+              <div>
+                <h3>Linux</h3>
+                <p class="req">64 bits (x86_64) · Ubuntu, Debian, Fedora e outros</p>
+              </div>
+            </div>
+            <div class="dl-split">
+              <a class="btn btn-primary" data-asset="deb" href="https://github.com/marloon-dev/vm-guave/releases/latest">.deb <span class="size"></span></a>
+              <a class="btn btn-primary" data-asset="rpm" href="https://github.com/marloon-dev/vm-guave/releases/latest">.rpm <span class="size"></span></a>
+            </div>
+            <a class="alt-link" data-asset="appimage" href="https://github.com/marloon-dev/vm-guave/releases/latest">AppImage (qualquer distribuição)</a>
+            <ol class="install">
+              <li>Ubuntu/Debian: <code>sudo apt install ./VM.Guave_*.deb</code></li>
+              <li>Fedora: <code>sudo dnf install ./VM.Guave-*.rpm</code></li>
+              <li>Para usar o KVM: <code>sudo usermod -aG kvm $USER</code> e entre de novo na sessão.</li>
+            </ol>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- PERGUNTAS -->
+    <section class="section" id="perguntas" aria-labelledby="perguntas-titulo">
+      <div class="container container-narrow">
+        <header class="section-head reveal">
+          <p class="eyebrow">Perguntas frequentes</p>
+          <h2 id="perguntas-titulo">Dúvidas comuns</h2>
+        </header>
+        <div class="faq reveal">
+          <details>
+            <summary>O VM Guave é grátis mesmo?</summary>
+            <p>Sim. É gratuito e de código aberto, sob a licença MIT: você pode usar, estudar, modificar e distribuir, inclusive em empresas.</p>
+          </details>
+          <details>
+            <summary>Preciso de licença do Windows para criar uma VM Windows?</summary>
+            <p>O VM Guave não inclui o Windows. Baixe a ISO oficial no site da Microsoft. O uso segue os termos de licença da Microsoft.</p>
+          </details>
+          <details>
+            <summary>Por que aparece um aviso de segurança ao instalar?</summary>
+            <p>Os instaladores ainda não têm assinatura digital paga da Apple e da Microsoft. O código é aberto e os instaladores são gerados automaticamente pelo GitHub a partir dele. No Mac, use <strong>botão direito → Abrir</strong>; no Windows, <strong>Mais informações → Executar assim mesmo</strong>.</p>
+          </details>
+          <details>
+            <summary>Funciona em Mac com processador Intel?</summary>
+            <p>Ainda não. A versão para Mac é compilada só para Apple Silicon (M1 ou mais novo), e recursos como VMs macOS e Rosetta dependem desses processadores.</p>
+          </details>
+          <details>
+            <summary>O VM Guave envia algum dado meu?</summary>
+            <p>Não. O app não tem conta, anúncios nem telemetria. As VMs ficam só no seu computador. A internet só é usada quando você pede para baixar um sistema ou instalador.</p>
+          </details>
+          <details>
+            <summary>Quanto de memória e disco eu preciso?</summary>
+            <p>Para um Linux com interface gráfica, 4 GB de memória e 32 GB de disco já funcionam bem. Para o Windows, recomendamos 8 GB e 64 GB. O disco da VM cresce conforme o uso, então não ocupa o tamanho todo de uma vez.</p>
+          </details>
+          <details>
+            <summary>Encontrei um problema. Como aviso?</summary>
+            <p>Abra uma <a href="https://github.com/marloon-dev/vm-guave/issues">issue no GitHub</a> descrevendo o que aconteceu, o sistema que você usa e, se possível, os passos para repetir o problema.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHAMADA FINAL -->
+    <section class="final-cta">
+      <div class="container final-inner reveal">
+        <img src="assets/icon.png" alt="" width="96" height="96" loading="lazy">
+        <h2>Pronto para criar sua primeira VM?</h2>
+        <div class="cta">
+          <a class="btn btn-primary btn-large" href="#download">Baixar o VM Guave</a>
+          <a class="btn btn-ghost btn-large" href="https://github.com/marloon-dev/vm-guave">Ver código no GitHub</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <a class="logo" href="#topo">
+        <img src="assets/icon.png" alt="" width="28" height="28" loading="lazy">
+        <span>VM Guave</span>
+      </a>
+      <p>Código aberto sob a <a href="https://github.com/marloon-dev/vm-guave/blob/main/LICENSE">licença MIT</a> · © 2026 Marlon Nunes Vieira</p>
+      <ul>
+        <li><a href="https://github.com/marloon-dev/vm-guave">GitHub</a></li>
+        <li><a href="https://github.com/marloon-dev/vm-guave/releases">Versões</a></li>
+        <li><a href="https://github.com/marloon-dev/vm-guave/issues">Reportar problema</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <script src="main.js" defer></script>
+</body>
+</html>
