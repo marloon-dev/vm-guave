@@ -29,6 +29,12 @@ final class QEMUMachine {
 
     var processIdentifier: pid_t? { qemu?.processIdentifier }
 
+    /// Tabela L2 inteira em memória: 1 MB para cada 8 GB de disco (clusters de 64 KB; os de
+    /// 128 KB precisam da metade). Entre 1 e 32 MB.
+    nonisolated static func l2CacheMB(diskGB: Int) -> Int {
+        min(32, max(1, (diskGB + 7) / 8))
+    }
+
     /// Nome do snapshot interno do qcow2 que guarda a VM suspensa.
     nonisolated static let suspendTag = "vmguave-suspend"
     /// node-name do disco principal: o estado (memória e dispositivos) é gravado nele.
@@ -156,7 +162,9 @@ final class QEMUMachine {
             "-device", "usb-kbd",
             "-device", "usb-tablet",
             // NVMe: o instalador do Windows já tem driver (virtio-blk exigiria drivers extras).
-            "-drive", "if=none,id=hd0,file=\(bundle.qcow2DiskURL.path),format=qcow2,discard=unmap,node-name=\(Self.diskNode)",
+            // l2-cache-size: fora do Linux o QEMU guarda só 1 MB de tabela L2 (mapeia 8 GB de disco);
+            // com o tamanho todo em cache, acesso aleatório não relê metadados do arquivo.
+            "-drive", "if=none,id=hd0,file=\(bundle.qcow2DiskURL.path),format=qcow2,discard=unmap,detect-zeroes=unmap,l2-cache-size=\(Self.l2CacheMB(diskGB: config.diskGB))M,node-name=\(Self.diskNode)",
             "-device", "nvme,drive=hd0,serial=BG\(config.id.uuidString.prefix(8))",
             "-audiodev", "coreaudio,id=snd0",
             "-device", "intel-hda",
@@ -185,7 +193,8 @@ final class QEMUMachine {
 
         var nic = "user,model=virtio-net-pci,mac=\(config.macAddress)"
         for forward in config.portForwards {
-            nic += ",hostfwd=\(forward.proto.rawValue)::\(forward.hostPort)-:\(forward.guestPort)"
+            // Só no próprio Mac (127.0.0.1): sem endereço, o QEMU abriria a porta para a rede local.
+            nic += ",hostfwd=\(forward.proto.rawValue):127.0.0.1:\(forward.hostPort)-:\(forward.guestPort)"
         }
         args += ["-nic", nic]
 

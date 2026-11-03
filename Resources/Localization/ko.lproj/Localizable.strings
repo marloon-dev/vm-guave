@@ -447,3 +447,9 @@
 "Salva o estado das VMs e fecha. VMs Linux e macOS com rede personalizada não podem ser suspensas e são desligadas na hora." = "VM 상태를 저장하고 종료합니다. 사용자 지정 네트워크를 쓰는 Linux 및 macOS VM은 일시 중단할 수 없어 즉시 종료됩니다.";
 "Sem internet. Só o Mac e as outras VMs neste modo alcançam a VM, pelo IP fixo %@. Bom para laboratório isolado." = "인터넷 없음. Mac과 이 모드의 다른 VM만 고정 IP %@(으)로 VM에 접속할 수 있습니다. 격리된 실습 환경에 적합합니다.";
 "tempo esgotado" = "시간 초과";
+"\"%@\" foi importada" = "“%@”을(를) 가져왔습니다";
+"%@ não confere com o SHA-256 oficial (download corrompido ou adulterado) e foi apagado." = "%@이(가) 공식 SHA-256과 일치하지 않아(다운로드 손상 또는 변조) 삭제했습니다.";
+"A atualização não tem a assinatura do VM Guave. Por segurança, nada foi instalado." = "이 업데이트에는 VM Guave의 서명이 없습니다. 안전을 위해 아무것도 설치하지 않았습니다.";
+"Não encontrei a lista oficial de SHA-256 para conferir %@. O arquivo foi apagado por segurança; tente de novo mais tarde." = "%@을(를) 확인할 공식 SHA-256 목록을 찾지 못했습니다. 안전을 위해 파일을 삭제했습니다. 나중에 다시 시도하세요.";
+"O QEMU instalado (%lld.%lld) é antigo e pode ter falhas de segurança. Atualize com: brew upgrade qemu" = "설치된 QEMU(%lld.%lld)가 오래되어 보안 결함이 있을 수 있습니다. brew upgrade qemu로 업데이트하세요";
+"Por segurança, a pasta compartilhada, as ISOs conectadas e a opção de ligar quando o VM Guave abrir não vieram junto. Se precisar, configure de novo nos ajustes da VM." = "안전을 위해 공유 폴더, 연결된 ISO, VM Guave를 열 때 시작하는 옵션은 가져오지 않았습니다. 필요하면 VM 설정에서 다시 설정하세요.";

@@ -1,20 +1,25 @@
+import Observation
+import AppKit
 import Foundation
 import Virtualization
 
 /// Lista de VMs em disco + sessões em execução.
 @MainActor
-final class VMLibrary: ObservableObject {
+@Observable
+final class VMLibrary {
     /// Instância única: usada pela interface e pelo servidor do bgctl.
     static let shared = VMLibrary()
 
-    @Published private(set) var configs: [VMConfig] = []
-    @Published var lastError: String?
+    private(set) var configs: [VMConfig] = []
+    var lastError: String?
     /// Operação longa em andamento (exportar/importar), mostrada como overlay.
-    @Published private(set) var busyMessage: String?
+    private(set) var busyMessage: String?
     /// 0...1 quando a operação longa sabe o próprio progresso (ex.: conversão de disco).
-    @Published private(set) var busyProgress: Double?
+    private(set) var busyProgress: Double?
 
-    private var runners: [UUID: VMRunner] = [:]
+    /// Criados sob demanda, inclusive durante o desenho das telas: fora do rastreamento do
+    /// Observation (cada runner é observável por si; mexer aqui não deve redesenhar nada).
+    @ObservationIgnored private var runners: [UUID: VMRunner] = [:]
 
     init() {
         reload()
@@ -26,7 +31,13 @@ final class VMLibrary: ObservableObject {
         let urls = (try? fm.contentsOfDirectory(at: VMBundle.libraryURL, includingPropertiesForKeys: nil)) ?? []
         configs = urls
             .filter { $0.pathExtension == "bootguave" }
-            .compactMap { try? VMBundle(url: $0).loadConfig() }
+            .compactMap { url -> VMConfig? in
+                let bundle = VMBundle(url: url)
+                guard let config = try? bundle.loadConfig() else { return nil }
+                // VM criptografada antes desta versão: leva os detalhes para dentro do cofre.
+                if bundle.needsPrivateMigration { try? bundle.save(config) }
+                return config
+            }
             .sorted { $0.createdAt < $1.createdAt }
         for config in configs {
             runners[config.id]?.config = config
@@ -68,6 +79,27 @@ final class VMLibrary: ObservableObject {
         }
     }
 
+    /// Um .bootguave pode vir de outra pessoa: o config.json dele não pode dar à VM acesso a
+    /// arquivos deste Mac (pasta compartilhada, "ISOs" que apontam para qualquer arquivo) nem
+    /// ligá-la sozinha. Devolve true se algo foi removido.
+    private static func stripHostAccess(_ config: inout VMConfig) -> Bool {
+        let hadAccess = config.sharedFolderPath != nil || config.installerISOPath != nil
+            || config.driversISOPath != nil || config.installerIPSWPath != nil || config.autoStart
+        config.sharedFolderPath = nil
+        config.installerISOPath = nil
+        config.driversISOPath = nil
+        config.installerIPSWPath = nil
+        config.autoStart = false
+        return hadAccess
+    }
+
+    private static func announceStrippedImport(_ name: String) {
+        let alert = NSAlert()
+        alert.messageText = String(localized: "\"\(name)\" foi importada")
+        alert.informativeText = String(localized: "Por segurança, a pasta compartilhada, as ISOs conectadas e a opção de ligar quando o VM Guave abrir não vieram junto. Se precisar, configure de novo nos ajustes da VM.")
+        alert.runModal()
+    }
+
     /// Clone e importação: tira os redirecionamentos cujas portas outra VM da rede já usa.
     private func dropTakenHostPorts(_ config: inout VMConfig) {
         let taken = VMNetworkFactory.members(of: config, in: configs)
@@ -81,8 +113,13 @@ final class VMLibrary: ObservableObject {
         if !bundle(id).isUnlocked { throw VaultError.locked }
     }
 
+    /// Muda quando um cofre é aberto ou fechado: o estado vem do disco, e as telas que
+    /// perguntam `isLocked` precisam saber que devem perguntar de novo.
+    private(set) var lockRevision = 0
+
     func isLocked(_ id: UUID) -> Bool {
-        !bundle(id).isUnlocked
+        _ = lockRevision
+        return !bundle(id).isUnlocked
     }
 
     func create(_ config: VMConfig) {
@@ -283,6 +320,7 @@ final class VMLibrary: ObservableObject {
             config.macAddress = VZMACAddress.randomLocallyAdministered().string
         }
         let destination = VMBundle(url: VMBundle.url(for: config.id))
+        var resetAfterImport = false
         busyMessage = String(localized: "Importando \(config.name)…")
         defer { busyMessage = nil }
         do {
@@ -296,6 +334,7 @@ final class VMLibrary: ObservableObject {
             config.networkSubnet = nil
             config.assignNetworkAddress(previousMode: nil, among: configs)
             dropTakenHostPorts(&config)
+            resetAfterImport = Self.stripHostAccess(&config)
             try destination.save(config)
         } catch {
             try? FileManager.default.removeItem(at: destination.url)
@@ -304,6 +343,7 @@ final class VMLibrary: ObservableObject {
         }
         reload()
         ActivityLog.shared.add(.imported, config.name)
+        if resetAfterImport { Self.announceStrippedImport(config.name) }
         return config.id
     }
 
@@ -404,6 +444,14 @@ final class VMLibrary: ObservableObject {
             if !bundle.isUnlocked {
                 try await VMVault.attach(bundle.vaultURL, at: vault, password: password)
             }
+            // Com o cofre aberto, recupera os detalhes que estavam dentro dele.
+            if let full = try? bundle.loadConfig() {
+                config.sharedFolderPath = full.sharedFolderPath
+                config.installerISOPath = full.installerISOPath
+                config.driversISOPath = full.driversISOPath
+                config.installerIPSWPath = full.installerIPSWPath
+                config.portForwards = full.portForwards
+            }
             copied = try await Task.detached { () -> [String] in
                 let fm = FileManager.default
                 let present = VMBundle.vaultFiles.filter { fm.fileExists(atPath: vault.appendingPathComponent($0).path) }
@@ -438,7 +486,7 @@ final class VMLibrary: ObservableObject {
             }
             if remember { VaultKeychain.save(password, for: id) }
             runners[id]?.refreshState()
-            objectWillChange.send()
+            lockRevision += 1
             return true
         } catch {
             lastError = error.localizedDescription
@@ -456,7 +504,7 @@ final class VMLibrary: ObservableObject {
             lastError = error.localizedDescription
         }
         runners[id]?.refreshState()
-        objectWillChange.send()
+        lockRevision += 1
     }
 
     /// Ao encerrar o app: nenhum cofre fica montado.

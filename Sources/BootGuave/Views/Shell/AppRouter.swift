@@ -1,3 +1,4 @@
+import Observation
 import SwiftUI
 
 /// Seções da barra lateral.
@@ -64,20 +65,21 @@ enum SettingsSection: String, CaseIterable, Identifiable {
 
 /// Estado da navegação, compartilhado com os menus do app (⌘N, ⌘,).
 @MainActor
-final class AppRouter: ObservableObject {
+@Observable
+final class AppRouter {
     static let shared = AppRouter()
 
     /// Página aberta; o app volta nela na próxima vez.
-    @Published var page: AppPage = AppPage(rawValue: UserDefaults.standard.string(forKey: "lastPage") ?? "") ?? .overview {
+    var page: AppPage = AppPage(rawValue: UserDefaults.standard.string(forKey: "lastPage") ?? "") ?? .overview {
         didSet { UserDefaults.standard.set(page.rawValue, forKey: "lastPage") }
     }
     /// VM aberta em detalhe dentro de "Máquinas Virtuais".
-    @Published var openVM: UUID?
-    @Published var settingsSection: SettingsSection = .general
+    var openVM: UUID?
+    var settingsSection: SettingsSection = .general
 
     /// Pedido para o assistente de nova VM (com imagem já escolhida, se veio da página Imagens).
-    @Published var wizardRequest: WizardRequest?
-    @Published var showingDiskImport = false
+    var wizardRequest: WizardRequest?
+    var showingDiskImport = false
 
     func go(_ page: AppPage) {
         self.page = page

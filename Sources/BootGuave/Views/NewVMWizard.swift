@@ -270,7 +270,7 @@ struct NewVMWizard: View {
     }
 
     private func download(_ distro: Distro) {
-        startDownload(label: distro.displayName, folder: DownloadLocations.isoFolder, resolve: { try await distro.latestISOURL() }) { url in
+        startDownload(label: distro.displayName, folder: DownloadLocations.isoFolder, verify: true, resolve: { try await distro.latestISOURL() }) { url in
             isoURL = url
             if !nameEdited { name = distro.suggestedVMName }
         }
@@ -283,7 +283,8 @@ struct NewVMWizard: View {
     }
 
     /// Resolve a URL, baixa para a pasta (se ainda não existir lá) e entrega o arquivo local.
-    private func startDownload(label: String, folder: URL, resolve: @escaping () async throws -> URL, onDone: @escaping (URL) -> Void) {
+    /// `verify`: confere com a lista oficial de SHA-256 da distro (o virtio-win não publica uma).
+    private func startDownload(label: String, folder: URL, verify: Bool = false, resolve: @escaping () async throws -> URL, onDone: @escaping (URL) -> Void) {
         downloadError = nil
         downloadLabel = label
         downloadProgress = nil
@@ -298,6 +299,7 @@ struct NewVMWizard: View {
                     }
                     self.downloader = downloader
                     _ = try await downloader.download(from: remote)
+                    if verify { try await ISOChecksum.verify(destination, downloadedFrom: remote) }
                 }
                 onDone(destination)
             } catch {

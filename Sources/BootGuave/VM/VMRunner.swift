@@ -1,3 +1,4 @@
+import Observation
 import Foundation
 import Virtualization
 
@@ -38,21 +39,22 @@ enum VMRunState: Equatable {
 
 /// Controla o ciclo de vida de uma VM. VZVirtualMachine é usada sempre na main queue.
 @MainActor
-final class VMRunner: NSObject, ObservableObject, VZVirtualMachineDelegate {
-    @Published var config: VMConfig
-    @Published private(set) var state: VMRunState {
+@Observable
+final class VMRunner: NSObject, VZVirtualMachineDelegate {
+    var config: VMConfig
+    private(set) var state: VMRunState {
         didSet { logTransition(from: oldValue) }
     }
-    @Published private(set) var virtualMachine: VZVirtualMachine?
+    private(set) var virtualMachine: VZVirtualMachine?
     /// Aviso não fatal (ex.: não deu para suspender, mas a VM segue rodando).
-    @Published var notice: String?
+    var notice: String?
     /// 0...1 durante download/instalação do macOS.
-    @Published private(set) var progress: Double?
+    private(set) var progress: Double?
     /// VM criptografada bloqueada e sem senha no Keychain: a interface pede a senha.
-    @Published var passwordNeeded = false
+    var passwordNeeded = false
 
     /// Chamado quando o próprio runner grava a config (ex.: instalação do macOS).
-    var onConfigSaved: (() -> Void)?
+    @ObservationIgnored var onConfigSaved: (() -> Void)?
 
     /// Registra na Atividade só as mudanças que interessam (pausar e retomar ficam de fora).
     private func logTransition(from old: VMRunState) {
@@ -73,14 +75,14 @@ final class VMRunner: NSObject, ObservableObject, VZVirtualMachineDelegate {
     }
 
     private var bundle: VMBundle { VMBundle(url: VMBundle.url(for: config.id)) }
-    private var downloader: FileDownloader?
-    private var installObservation: NSKeyValueObservation?
+    @ObservationIgnored private var downloader: FileDownloader?
+    @ObservationIgnored private var installObservation: NSKeyValueObservation?
     /// Motor QEMU (VMs Windows).
-    private var qemu: QEMUMachine? {
+    @ObservationIgnored private var qemu: QEMUMachine? {
         didSet { qemuDisplaySocket = qemu?.displaySocket }
     }
     /// Tela da VM Windows em execução (a janela da VM se conecta a ela).
-    @Published private(set) var qemuDisplaySocket: URL?
+    private(set) var qemuDisplaySocket: URL?
 
     init(config: VMConfig) {
         self.config = config
@@ -152,7 +154,11 @@ final class VMRunner: NSObject, ObservableObject, VZVirtualMachineDelegate {
         state = .starting
         Task {
             do {
-                if let warning = try await machine.start() { notice = warning }
+                if let warning = try await machine.start() {
+                    notice = warning
+                } else if let warning = await QEMUTools.outdatedWarning() {
+                    notice = warning
+                }
                 state = .running
             } catch {
                 qemu = nil
@@ -178,7 +184,9 @@ final class VMRunner: NSObject, ObservableObject, VZVirtualMachineDelegate {
         vm.start { [weak self] result in
             guard let self else { return }
             switch result {
-            case .success: self.state = .running
+            case .success:
+                self.state = .running
+                self.applyCurrentMemoryPressure()
             case .failure(let error): self.fail(error)
             }
         }
@@ -198,11 +206,20 @@ final class VMRunner: NSObject, ObservableObject, VZVirtualMachineDelegate {
             }
             vm.resume { [weak self] result in
                 switch result {
-                case .success: self?.state = .running
+                case .success:
+                    self?.state = .running
+                    self?.applyCurrentMemoryPressure()
                 case .failure(let error): self?.fail(error)
                 }
             }
         }
+    }
+
+    /// VM ligada com o Mac já sem memória: começa com o balão no nível atual.
+    private func applyCurrentMemoryPressure() {
+        let level = MemoryBalloon.shared.level
+        guard level != .normal else { return }
+        applyMemoryTarget(MemoryBalloon.target(forConfiguredGB: config.memoryGB, level: level))
     }
 
     func pause() {

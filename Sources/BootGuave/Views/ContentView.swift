@@ -3,8 +3,8 @@ import SwiftUI
 
 /// Janela principal: barra lateral com as seções e a página escolhida.
 struct ContentView: View {
-    @EnvironmentObject private var library: VMLibrary
-    @ObservedObject private var router = AppRouter.shared
+    @Environment(VMLibrary.self) private var library
+    @Bindable private var router = AppRouter.shared
 
     var body: some View {
         NavigationSplitView {
@@ -87,7 +87,7 @@ struct ContentView: View {
 // MARK: - Barra lateral
 
 private struct Sidebar: View {
-    @ObservedObject private var router = AppRouter.shared
+    private let router = AppRouter.shared
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {

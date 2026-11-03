@@ -4,7 +4,7 @@ import SwiftUI
 @main
 struct BootGuaveApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
-    @StateObject private var library = VMLibrary.shared
+    @State private var library = VMLibrary.shared
 
     init() {
         AppSettings.registerDefaults()
@@ -13,7 +13,7 @@ struct BootGuaveApp: App {
     var body: some Scene {
         WindowGroup("VM Guave", id: "main") {
             ContentView()
-                .environmentObject(library)
+                .environment(library)
                 .frame(minWidth: 1000, minHeight: 640)
         }
         .defaultSize(width: 1280, height: 820)
@@ -64,6 +64,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         AppSettings.theme.apply()
         HostMonitor.shared.start()
+        MemoryBalloon.shared.start()
         UpdateChecker.shared.startAutomaticChecks()
         installFullScreenShortcut()
         ControlServer.shared.start { request in

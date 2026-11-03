@@ -4,7 +4,7 @@ import Virtualization
 
 /// Janela com a tela da VM: modo janela, tela cheia e Picture in Picture.
 struct VMWindowView: View {
-    @ObservedObject var runner: VMRunner
+    let runner: VMRunner
     @State private var window: NSWindow?
     @State private var pictureInPicture = false
     @State private var frameBeforePiP: NSRect?

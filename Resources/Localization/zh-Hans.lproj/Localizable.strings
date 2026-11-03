@@ -447,3 +447,9 @@
 "Salva o estado das VMs e fecha. VMs Linux e macOS com rede personalizada não podem ser suspensas e são desligadas na hora." = "保存虚拟机状态并退出。使用自定义网络的 Linux 和 macOS 虚拟机无法挂起，会立即关闭。";
 "Sem internet. Só o Mac e as outras VMs neste modo alcançam a VM, pelo IP fixo %@. Bom para laboratório isolado." = "无法上网。只有 Mac 和此模式下的其他虚拟机能通过固定 IP %@ 访问此虚拟机。适合隔离的实验环境。";
 "tempo esgotado" = "超时";
+"\"%@\" foi importada" = "已导入“%@”";
+"%@ não confere com o SHA-256 oficial (download corrompido ou adulterado) e foi apagado." = "%@ 与官方 SHA-256 不符（下载损坏或被篡改），已删除。";
+"A atualização não tem a assinatura do VM Guave. Por segurança, nada foi instalado." = "此更新没有 VM Guave 的签名。为了安全，未安装任何内容。";
+"Não encontrei a lista oficial de SHA-256 para conferir %@. O arquivo foi apagado por segurança; tente de novo mais tarde." = "找不到用于校验 %@ 的官方 SHA-256 列表。为了安全，文件已删除；请稍后重试。";
+"O QEMU instalado (%lld.%lld) é antigo e pode ter falhas de segurança. Atualize com: brew upgrade qemu" = "已安装的 QEMU（%lld.%lld）版本较旧，可能存在安全漏洞。请运行 brew upgrade qemu 更新";
+"Por segurança, a pasta compartilhada, as ISOs conectadas e a opção de ligar quando o VM Guave abrir não vieram junto. Se precisar, configure de novo nos ajustes da VM." = "为了安全，共享文件夹、已连接的 ISO 以及“VM Guave 打开时启动”选项未被导入。如有需要，请在虚拟机设置中重新配置。";

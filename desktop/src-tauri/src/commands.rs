@@ -1,7 +1,7 @@
 //! Comandos chamados pela interface (invoke). O estado de cada VM vem do próprio QEMU,
-//! via QMP na porta gravada em run.json — assim uma VM continua controlável mesmo se o app
+//! via QMP no socket gravado em run.json — assim uma VM continua controlável mesmo se o app
 //! for fechado e aberto de novo com ela ligada.
-use crate::qemu::{self, Host};
+use crate::qemu::{self, Host, QmpEndpoint};
 use crate::vm::{self, GuestOs, PortForward, VmConfig, VmPaths};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -27,8 +27,23 @@ pub struct Manager {
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct RunState {
-    qmp_port: u16,
+    /// Socket Unix do QMP (versões novas).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    qmp_socket: Option<std::path::PathBuf>,
+    /// TCP: só em run.json de VMs ligadas por versões antigas do app.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    qmp_port: Option<u16>,
     pid: u32,
+}
+
+impl RunState {
+    fn endpoint(&self) -> Option<QmpEndpoint> {
+        match (&self.qmp_socket, self.qmp_port) {
+            (Some(path), _) => Some(QmpEndpoint::Unix(path.clone())),
+            (None, Some(port)) => Some(QmpEndpoint::Tcp(port)),
+            (None, None) => None,
+        }
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Serialize)]
@@ -55,16 +70,16 @@ impl Manager {
     }
 
     fn qmp(&self, id: &str, command: &str) -> CmdResult<serde_json::Value> {
-        let port = run_state(id).ok_or("A VM não está ligada.")?.qmp_port;
+        let endpoint = run_state(id).and_then(|s| s.endpoint()).ok_or("A VM não está ligada.")?;
         let _guard = self.qmp_lock.lock().unwrap();
-        qemu::qmp(port, command)
+        qemu::qmp(&endpoint, command)
     }
 
     fn status(&self, id: &str) -> RunStatus {
-        let Some(state) = run_state(id) else { return RunStatus::Stopped };
+        let Some(endpoint) = run_state(id).and_then(|s| s.endpoint()) else { return RunStatus::Stopped };
         let reply = {
             let _guard = self.qmp_lock.lock().unwrap();
-            qemu::qmp(state.qmp_port, "query-status")
+            qemu::qmp(&endpoint, "query-status")
         };
         match reply {
             Ok(v) if v["return"]["status"] == "paused" => RunStatus::Paused,
@@ -279,8 +294,9 @@ pub async fn start_vm(manager: State<'_, Manager>, id: String) -> CmdResult<()> 
     if qemu::uses_uefi(&config, &host) {
         qemu::prepare_efi_vars(host.firmware.as_ref().unwrap(), &paths)?;
     }
-    let port = qemu::free_port()?;
-    let args = qemu::build_args(&config, &paths, &host, port)?;
+    let socket = qemu::qmp_socket_path(&paths, &id)?;
+    let _ = fs::remove_file(&socket); // sobra de uma sessão que caiu
+    let args = qemu::build_args(&config, &paths, &host, &socket)?;
 
     let log = fs::File::create(paths.log()).map_err(|e| e.to_string())?;
     let mut cmd = Command::new(&qemu_path);
@@ -298,7 +314,7 @@ pub async fn start_vm(manager: State<'_, Manager>, id: String) -> CmdResult<()> 
         let detail = log_tail(&paths);
         return Err(format!("O QEMU encerrou ({status}).\n{detail}"));
     }
-    let state = RunState { qmp_port: port, pid: child.id() };
+    let state = RunState { qmp_socket: Some(socket), qmp_port: None, pid: child.id() };
     fs::write(paths.run_state(), serde_json::to_vec(&state).unwrap()).map_err(|e| e.to_string())?;
     manager.children.lock().unwrap().insert(id, child);
     Ok(())

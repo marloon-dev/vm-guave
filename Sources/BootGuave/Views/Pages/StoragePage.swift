@@ -23,9 +23,9 @@ private struct StorageStats: Sendable {
 }
 
 struct StoragePage: View {
-    @EnvironmentObject private var library: VMLibrary
-    @ObservedObject private var router = AppRouter.shared
-    @ObservedObject private var images = ImageLibrary.shared
+    @Environment(VMLibrary.self) private var library
+    private let router = AppRouter.shared
+    private let images = ImageLibrary.shared
     @State private var stats: StorageStats?
     @State private var creatingVolume = false
 
@@ -217,7 +217,7 @@ struct StoragePage: View {
 
 /// Novo disco vazio para uma VM desligada (aparece como /dev/vdb, /dev/vdc… no Linux).
 private struct CreateVolumeSheet: View {
-    @EnvironmentObject private var library: VMLibrary
+    @Environment(VMLibrary.self) private var library
     @Environment(\.dismiss) private var dismiss
     @State private var vmID: UUID?
     @State private var sizeGB = 32

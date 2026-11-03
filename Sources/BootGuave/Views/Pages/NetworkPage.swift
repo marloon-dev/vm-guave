@@ -13,8 +13,8 @@ private struct NetworkInfo: Identifiable {
 }
 
 struct NetworkPage: View {
-    @EnvironmentObject private var library: VMLibrary
-    @ObservedObject private var router = AppRouter.shared
+    @Environment(VMLibrary.self) private var library
+    private let router = AppRouter.shared
     /// Os IPs da NAT vêm do arquivo de concessões do DHCP do macOS; relê de tempos em tempos.
     @State private var tick = 0
     private let refresh = Timer.publish(every: 10, on: .main, in: .common).autoconnect()

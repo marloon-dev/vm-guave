@@ -1,3 +1,4 @@
+import Observation
 import Foundation
 import SwiftUI
 
@@ -68,10 +69,11 @@ struct ActivityEntry: Codable, Identifiable, Hashable {
 
 /// Histórico das últimas ações, salvo em Application Support (sobrevive a reinícios).
 @MainActor
-final class ActivityLog: ObservableObject {
+@Observable
+final class ActivityLog {
     static let shared = ActivityLog()
 
-    @Published private(set) var entries: [ActivityEntry] = []
+    private(set) var entries: [ActivityEntry] = []
     private let limit = 200
 
     private var fileURL: URL {

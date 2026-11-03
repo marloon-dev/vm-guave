@@ -5,7 +5,8 @@ import Foundation
 /// Unix local (`-vnc unix:…`). Só o necessário: pixels "raw" em 32 bits, mudança de resolução,
 /// teclado por scancode (extensão do QEMU) e mouse absoluto (usb-tablet).
 ///
-/// A leitura roda numa thread própria; `onFrame` é chamado na main queue com a imagem nova.
+/// A leitura roda numa thread própria e escreve os pixels direto no framebuffer (sem buffers
+/// intermediários). A tela puxa as áreas alteradas no ritmo do monitor (`copyDirty`).
 final class QEMUDisplayClient: @unchecked Sendable {
     private let socketPath: String
     private var fd: Int32 = -1
@@ -15,16 +16,55 @@ final class QEMUDisplayClient: @unchecked Sendable {
 
     private var width = 0
     private var height = 0
-    private var framebuffer = Data()
-    private var framePending = false
+    /// BGRX, `width * 4` bytes por linha.
+    private var framebuffer: UnsafeMutableRawPointer?
+    /// Área alterada desde a última `copyDirty` (em pixels do framebuffer).
+    private var dirty = CGRect.null
+    /// Muda a cada troca de resolução; a tela recria as superfícies quando vê um valor novo.
+    private(set) var generation = 0
+    /// Rascunho reaproveitado para retângulos mais estreitos que a tela.
+    private var scratch: UnsafeMutableRawPointer?
+    private var scratchSize = 0
 
-    /// Imagem nova (main queue).
-    var onFrame: ((CGImage) -> Void)?
     /// Conexão perdida depois de aberta (main queue).
     var onDisconnect: (() -> Void)?
 
     init(socket: URL) {
         socketPath = socket.path
+    }
+
+    deinit {
+        framebuffer?.deallocate()
+        scratch?.deallocate()
+    }
+
+    /// Copia para `destination` (mesmo tamanho, `bytesPerRow` próprio) o que mudou desde a
+    /// última chamada e devolve essa área, ou nil se nada mudou. `force` copia a tela toda.
+    func copyDirty(into destination: UnsafeMutableRawPointer, bytesPerRow: Int, force: Bool) -> (rect: CGRect, generation: Int)? {
+        frameLock.lock()
+        defer { frameLock.unlock() }
+        guard let framebuffer, width > 0, height > 0 else { return nil }
+        let full = CGRect(x: 0, y: 0, width: width, height: height)
+        let area = force ? full : dirty.intersection(full)
+        guard !area.isNull, !area.isEmpty else { return nil }
+        let x = Int(area.minX), y = Int(area.minY), w = Int(area.width), h = Int(area.height)
+        let stride = width * 4
+        for row in y..<(y + h) {
+            let target = destination + row * bytesPerRow + x * 4
+            memcpy(target, framebuffer + row * stride + x * 4, w * 4)
+            // O 4º byte vem zerado do QEMU; na tela ele é a opacidade. O laço vira SIMD no -O.
+            let pixels = target.assumingMemoryBound(to: UInt32.self)
+            for i in 0..<w { pixels[i] |= 0xFF00_0000 }
+        }
+        dirty = .null
+        return (area, generation)
+    }
+
+    /// Área alterada sem consumir (para a tela saber se há o que desenhar).
+    var hasChanges: Bool {
+        frameLock.lock()
+        defer { frameLock.unlock() }
+        return !dirty.isNull
     }
 
     var size: CGSize {
@@ -197,7 +237,6 @@ final class QEMUDisplayClient: @unchecked Sendable {
                         throw DisplayError.protocolError
                     }
                 }
-                publishFrame()
                 requestUpdate(incremental: !resized)
             case 1: // SetColourMapEntries (não usado em cor real)
                 _ = try read(3)
@@ -220,70 +259,105 @@ final class QEMUDisplayClient: @unchecked Sendable {
         frameLock.lock()
         defer { frameLock.unlock() }
         guard w != width || h != height else { return false }
+        framebuffer?.deallocate()
+        framebuffer = w > 0 && h > 0 ? UnsafeMutableRawPointer.allocate(byteCount: w * h * 4, alignment: 64) : nil
+        if let framebuffer { memset(framebuffer, 0, w * h * 4) }
         width = w
         height = h
-        framebuffer = Data(count: w * h * 4)
+        dirty = CGRect(x: 0, y: 0, width: w, height: h)
+        generation += 1
         return true
     }
 
+    /// Pixels "raw": vão do socket direto para o framebuffer. Com a largura toda, numa leitura
+    /// só; mais estreitos, pelo rascunho e depois linha a linha (poucas chamadas ao sistema).
     private func readRaw(x: Int, y: Int, w: Int, h: Int) throws {
         let rowBytes = w * 4
         guard rowBytes > 0, h > 0 else { return }
-        let pixels = try read(rowBytes * h)
+        let total = rowBytes * h
         frameLock.lock()
-        defer { frameLock.unlock() }
-        guard x + w <= width, y + h <= height else { return }
+        let fits = framebuffer != nil && x + w <= width && y + h <= height
+        let fullWidth = fits && x == 0 && w == width
         let stride = width * 4
-        framebuffer.withUnsafeMutableBytes { target in
-            pixels.withUnsafeBytes { source in
-                for row in 0..<h {
-                    memcpy(target.baseAddress! + (y + row) * stride + x * 4, source.baseAddress! + row * rowBytes, rowBytes)
-                }
-            }
-        }
-    }
-
-    /// Junta as atualizações: a main queue só monta uma imagem por vez.
-    private func publishFrame() {
-        frameLock.lock()
-        let alreadyPending = framePending
-        framePending = true
+        let target = framebuffer
         frameLock.unlock()
-        guard !alreadyPending else { return }
-        DispatchQueue.main.async { [weak self] in
-            guard let self else { return }
-            self.frameLock.lock()
-            self.framePending = false
-            let image = Self.makeImage(self.framebuffer, width: self.width, height: self.height)
-            self.frameLock.unlock()
-            if let image { self.onFrame?(image) }
-        }
-    }
 
-    static func makeImage(_ data: Data, width: Int, height: Int) -> CGImage? {
-        guard width > 0, height > 0, let provider = CGDataProvider(data: data as CFData) else { return nil }
-        return CGImage(
-            width: width, height: height, bitsPerComponent: 8, bitsPerPixel: 32, bytesPerRow: width * 4,
-            space: CGColorSpace(name: CGColorSpace.sRGB)!,
-            bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue),
-            provider: provider, decode: nil, shouldInterpolate: true, intent: .defaultIntent
-        )
+        guard fits, let target else {
+            try skip(total)
+            return
+        }
+        if fullWidth {
+            // A escrita concorre com a cópia da tela, mas só nas linhas deste retângulo,
+            // que ainda vão ser marcadas como alteradas: no pior caso aparece um quadro misto.
+            try readExact(into: target + y * stride, count: total)
+        } else {
+            if scratchSize < total {
+                scratch?.deallocate()
+                scratch = UnsafeMutableRawPointer.allocate(byteCount: total, alignment: 64)
+                scratchSize = total
+            }
+            try readExact(into: scratch!, count: total)
+            frameLock.lock()
+            for row in 0..<h {
+                memcpy(target + (y + row) * stride + x * 4, scratch! + row * rowBytes, rowBytes)
+            }
+            frameLock.unlock()
+        }
+        frameLock.lock()
+        dirty = dirty.union(CGRect(x: x, y: y, width: w, height: h))
+        frameLock.unlock()
     }
 
     // MARK: Leitura
 
-    private var pending = Data()
+    /// Leitura com buffer para os cabeçalhos pequenos; os pixels usam `readExact(into:)`.
+    private var buffer = [UInt8](repeating: 0, count: 64 * 1024)
+    private var bufferStart = 0
+    private var bufferEnd = 0
+
+    private func fill() throws {
+        bufferStart = 0
+        let n = buffer.withUnsafeMutableBytes { Darwin.read(fd, $0.baseAddress, $0.count) }
+        guard n > 0 else { throw DisplayError.closed }
+        bufferEnd = n
+    }
 
     private func read(_ count: Int) throws -> Data {
-        var buffer = [UInt8](repeating: 0, count: 65536)
-        while pending.count < count {
-            let n = Darwin.read(fd, &buffer, buffer.count)
-            guard n > 0 else { throw DisplayError.closed }
-            pending.append(buffer, count: n)
+        var result = Data(capacity: count)
+        while result.count < count {
+            if bufferStart == bufferEnd { try fill() }
+            let take = min(count - result.count, bufferEnd - bufferStart)
+            result.append(contentsOf: buffer[bufferStart..<(bufferStart + take)])
+            bufferStart += take
         }
-        let result = pending.prefix(count)
-        pending.removeFirst(count)
-        return Data(result)
+        return result
+    }
+
+    /// Lê `count` bytes direto para `destination`: primeiro o que sobrou no buffer, depois
+    /// leituras do socket sem cópia intermediária.
+    private func readExact(into destination: UnsafeMutableRawPointer, count: Int) throws {
+        var done = 0
+        let buffered = min(count, bufferEnd - bufferStart)
+        if buffered > 0 {
+            _ = buffer.withUnsafeBytes { memcpy(destination, $0.baseAddress! + bufferStart, buffered) }
+            bufferStart += buffered
+            done = buffered
+        }
+        while done < count {
+            let n = Darwin.read(fd, destination + done, count - done)
+            guard n > 0 else { throw DisplayError.closed }
+            done += n
+        }
+    }
+
+    private func skip(_ count: Int) throws {
+        var left = count
+        while left > 0 {
+            if bufferStart == bufferEnd { try fill() }
+            let take = min(left, bufferEnd - bufferStart)
+            bufferStart += take
+            left -= take
+        }
     }
 
     private func readUInt16() throws -> UInt16 {

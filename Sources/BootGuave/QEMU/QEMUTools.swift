@@ -22,6 +22,30 @@ enum QEMUTools {
 
     static let installHint = String(localized: "Instale com: brew install qemu swtpm")
 
+    /// Versão mínima recomendada: correções de segurança recentes e o suspender completo
+    /// (estado do ramfb e do TPM no snapshot).
+    static let recommendedMajor = 9
+
+    nonisolated(unsafe) private static var cachedVersion: (major: Int, minor: Int)?
+
+    /// Versão do qemu-system-aarch64 instalado (lida uma vez por sessão).
+    static func installedVersion() async -> (major: Int, minor: Int)? {
+        if let cachedVersion { return cachedVersion }
+        guard let qemu = qemuSystem, let output = try? await run(qemu, ["--version"]) else { return nil }
+        // "QEMU emulator version 11.1.3"
+        guard let range = output.range(of: #"version (\d+)\.(\d+)"#, options: .regularExpression) else { return nil }
+        let numbers = output[range].dropFirst("version ".count).split(separator: ".").compactMap { Int($0) }
+        guard numbers.count >= 2 else { return nil }
+        cachedVersion = (numbers[0], numbers[1])
+        return cachedVersion
+    }
+
+    /// Aviso (não bloqueia) quando o QEMU instalado é antigo.
+    static func outdatedWarning() async -> String? {
+        guard let version = await installedVersion(), version.major < recommendedMajor else { return nil }
+        return String(localized: "O QEMU instalado (\(version.major).\(version.minor)) é antigo e pode ter falhas de segurança. Atualize com: brew upgrade qemu")
+    }
+
     static func require(_ tool: URL?, _ name: String) throws -> URL {
         guard let tool else { throw QEMUError.notInstalled(name) }
         return tool

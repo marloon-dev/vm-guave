@@ -2,8 +2,8 @@ import AppKit
 import SwiftUI
 
 struct MachinesPage: View {
-    @EnvironmentObject private var library: VMLibrary
-    @ObservedObject private var router = AppRouter.shared
+    @Environment(VMLibrary.self) private var library
+    private let router = AppRouter.shared
     @State private var search = ""
     @State private var filter: StatusFilter = .all
 
@@ -127,10 +127,10 @@ struct MachinesPage: View {
 }
 
 private struct MachineRow: View {
-    @ObservedObject var runner: VMRunner
-    @EnvironmentObject private var library: VMLibrary
+    let runner: VMRunner
+    @Environment(VMLibrary.self) private var library
     @Environment(\.openWindow) private var openWindow
-    @ObservedObject private var router = AppRouter.shared
+    private let router = AppRouter.shared
     @State private var confirmingDelete = false
 
     private var config: VMConfig { runner.config }

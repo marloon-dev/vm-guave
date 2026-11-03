@@ -23,11 +23,14 @@ final class ControlServer: @unchecked Sendable {
 
         let fd = socket(AF_UNIX, SOCK_STREAM, 0)
         guard fd >= 0 else { return }
+        // O socket já nasce só do usuário (0600): sem janela entre o bind e o chmod.
+        let previousMask = umask(0o077)
         let bound = withUnsafePointer(to: &addr) {
             $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
                 bind(fd, $0, socklen_t(MemoryLayout<sockaddr_un>.size))
             }
         }
+        umask(previousMask)
         guard bound == 0, listen(fd, 8) == 0 else {
             close(fd)
             return
@@ -39,7 +42,14 @@ final class ControlServer: @unchecked Sendable {
         let source = DispatchSource.makeReadSource(fileDescriptor: fd, queue: queue)
         source.setEventHandler { [weak self] in
             let client = accept(fd, nil, nil)
-            if client >= 0 { self?.serve(client, handler: handler) }
+            guard client >= 0 else { return }
+            // Só atende processos do mesmo usuário (o bgctl de quem abriu o app).
+            var uid: uid_t = 0, gid: gid_t = 0
+            guard getpeereid(client, &uid, &gid) == 0, uid == getuid() else {
+                close(client)
+                return
+            }
+            self?.serve(client, handler: handler)
         }
         source.resume()
         self.source = source

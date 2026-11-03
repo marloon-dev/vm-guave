@@ -77,7 +77,8 @@ A barra lateral tem seis seções (atalhos ⌘1 a ⌘6, menu **Ir**):
 O app procura versões novas na última Release do GitHub ao abrir, a cada 10 minutos e sempre que
 volta para a frente. Quando encontra, mostra um alerta com as novidades e as opções **Atualizar
 agora**, **Depois** e **Pular esta versão**. "Atualizar agora" baixa o `.dmg`, confere o SHA-256
-publicado pelo GitHub, confere que o app de dentro é o VM Guave na versão anunciada e, ao reiniciar,
+publicado pelo GitHub e a **assinatura Ed25519** do VM Guave (`.dmg.sig`), confere que o app de
+dentro é o VM Guave na versão anunciada e, ao reiniciar,
 troca o app no lugar (o antigo só é apagado depois que a troca dá certo). Se o app não estiver numa
 pasta em que o usuário possa gravar (por exemplo, aberto direto do `.dmg`), abre a página da versão.
 
@@ -88,8 +89,23 @@ Para publicar uma versão (os apps abertos oferecem a atualização em seguida):
 - Texto das novidades em Markdown"
 ```
 
-O script muda a versão no `Info.plist`, faz o commit, gera o `.dmg`, cria a tag e a Release com o
-`.dmg`. A tag dispara o GitHub Actions, que anexa os instaladores de Windows e Linux à mesma Release.
+O script muda a versão no `Info.plist`, faz o commit, gera o `.dmg`, assina, cria a tag e a Release
+com o `.dmg` e o `.dmg.sig`. A tag dispara o GitHub Actions, que anexa os instaladores de Windows e
+Linux à mesma Release.
+
+**Chave de assinatura das atualizações:** a chave privada fica só no Keychain de quem publica
+(serviço "VM Guave – assinatura de atualizações"); a pública está em `UpdateChecker.swift`. Sem a
+assinatura dessa chave, nenhum app instalado aceita a atualização, mesmo que alguém consiga publicar
+no GitHub. Guarde uma cópia segura dela (Acesso às Chaves → exportar, ou um gerenciador de senhas):
+se ela se perder, os usuários terão de instalar a versão seguinte à mão.
+
+```sh
+swift scripts/update-signing.swift generate   # uma vez só (não sobrescreve uma chave existente)
+swift scripts/update-signing.swift public     # mostra a chave pública
+```
+
+Com Developer ID, `SIGN_IDENTITY="Developer ID Application: …" NOTARY_PROFILE=<perfil>` assina,
+notariza e "grampeia" o `.dmg` (perfil criado com `xcrun notarytool store-credentials`).
 
 A interface está em português do Brasil e de Portugal, inglês, espanhol, francês, alemão, italiano,
 japonês, chinês simplificado, coreano e russo. Por padrão segue o idioma do macOS; num sistema em

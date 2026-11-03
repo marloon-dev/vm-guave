@@ -2,11 +2,11 @@ import AppKit
 import SwiftUI
 
 struct VMDetailView: View {
-    @ObservedObject var runner: VMRunner
+    let runner: VMRunner
     let onDelete: () -> Void
     let onClone: (UUID) -> Void
 
-    @EnvironmentObject private var library: VMLibrary
+    @Environment(VMLibrary.self) private var library
     @Environment(\.openWindow) private var openWindow
     @State private var confirmingDelete = false
     @State private var showingSettings = false

@@ -447,3 +447,9 @@
 "Salva o estado das VMs e fecha. VMs Linux e macOS com rede personalizada não podem ser suspensas e são desligadas na hora." = "Salva lo stato delle VM ed esce. Le VM Linux e macOS con rete personalizzata non possono essere sospese e vengono spente subito.";
 "Sem internet. Só o Mac e as outras VMs neste modo alcançam a VM, pelo IP fixo %@. Bom para laboratório isolado." = "Niente internet. Solo il Mac e le altre VM in questa modalità raggiungono la VM, all’IP fisso %@. Ideale per un laboratorio isolato.";
 "tempo esgotado" = "tempo scaduto";
+"\"%@\" foi importada" = "\"%@\" è stata importata";
+"%@ não confere com o SHA-256 oficial (download corrompido ou adulterado) e foi apagado." = "%@ non corrisponde allo SHA-256 ufficiale (download danneggiato o manomesso) ed è stato eliminato.";
+"A atualização não tem a assinatura do VM Guave. Por segurança, nada foi instalado." = "L'aggiornamento non ha la firma di VM Guave. Per sicurezza, non è stato installato nulla.";
+"Não encontrei a lista oficial de SHA-256 para conferir %@. O arquivo foi apagado por segurança; tente de novo mais tarde." = "Non ho trovato l'elenco ufficiale degli SHA-256 per verificare %@. Il file è stato eliminato per sicurezza; riprova più tardi.";
+"O QEMU instalado (%lld.%lld) é antigo e pode ter falhas de segurança. Atualize com: brew upgrade qemu" = "Il QEMU installato (%lld.%lld) è vecchio e può avere falle di sicurezza. Aggiornalo con: brew upgrade qemu";
+"Por segurança, a pasta compartilhada, as ISOs conectadas e a opção de ligar quando o VM Guave abrir não vieram junto. Se precisar, configure de novo nos ajustes da VM." = "Per sicurezza, la cartella condivisa, le ISO collegate e l'opzione di avvio all'apertura di VM Guave non sono state importate. Se servono, configurale di nuovo nelle impostazioni della VM.";

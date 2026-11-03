@@ -2,10 +2,10 @@ import Charts
 import SwiftUI
 
 struct OverviewPage: View {
-    @EnvironmentObject private var library: VMLibrary
-    @ObservedObject private var monitor = HostMonitor.shared
-    @ObservedObject private var activity = ActivityLog.shared
-    @ObservedObject private var router = AppRouter.shared
+    @Environment(VMLibrary.self) private var library
+    private let monitor = HostMonitor.shared
+    private let activity = ActivityLog.shared
+    private let router = AppRouter.shared
     @State private var range: ChartRange = .day
     @State private var showingAllActivity = false
 
@@ -256,7 +256,7 @@ struct ActivityRow: View {
 }
 
 private struct AllActivitySheet: View {
-    @ObservedObject private var activity = ActivityLog.shared
+    private let activity = ActivityLog.shared
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {

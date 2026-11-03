@@ -1,4 +1,6 @@
 import AppKit
+import IOSurface
+import QuartzCore
 import SwiftUI
 
 /// Tela de uma VM Windows dentro da janela do VM Guave (no lugar da VZVirtualMachineView das
@@ -48,16 +50,10 @@ final class QEMUScreenView: NSView {
         disconnect()
         self.socket = socket
         let client = QEMUDisplayClient(socket: socket)
-        client.onFrame = { [weak self] image in
-            guard let self else { return }
-            self.frameSize = CGSize(width: image.width, height: image.height)
-            CATransaction.begin()
-            CATransaction.setDisableActions(true)
-            self.layer?.contents = image
-            CATransaction.commit()
-        }
         client.start()
         self.client = client
+        surfaces = []
+        surfaceGeneration = -1
     }
 
     func disconnect() {
@@ -65,6 +61,86 @@ final class QEMUScreenView: NSView {
         client?.stop()
         client = nil
         socket = nil
+    }
+
+    // MARK: Imagem
+
+    /// Duas superfícies alternadas: o sistema mostra uma enquanto a outra recebe as áreas
+    /// alteradas. O IOSurface vai direto para a tela, sem montar imagem nem copiar de novo.
+    private var surfaces: [IOSurface] = []
+    private var front = 0
+    /// Área que cada superfície ainda não recebeu (o que mudou enquanto ela estava na tela).
+    private var stale: [CGRect] = []
+    private var surfaceGeneration = -1
+    private var displayLink: CADisplayLink?
+
+    /// Chamado a cada quadro do monitor; só trabalha quando o Windows mudou algo.
+    @objc private func refresh(_ link: CADisplayLink) {
+        guard let client else { return }
+        let size = client.size
+        guard size.width > 0, size.height > 0 else { return }
+        if surfaces.isEmpty || client.generation != surfaceGeneration {
+            makeSurfaces(width: Int(size.width), height: Int(size.height))
+            surfaceGeneration = client.generation
+        } else if !client.hasChanges {
+            return
+        }
+        let back = 1 - front
+        let surface = surfaces[back]
+        surface.lock(options: [], seed: nil)
+        // O que mudou agora (copiado do cliente) + o que esta superfície perdeu no quadro anterior.
+        let changed = client.copyDirty(into: surface.baseAddress, bytesPerRow: surface.bytesPerRow, force: false)?.rect ?? .null
+        let missing = stale[back]
+        if !missing.isNull {
+            surfaces[front].lock(options: .readOnly, seed: nil)
+            copy(missing.subtracting(changed), from: surfaces[front], to: surface)
+            surfaces[front].unlock(options: .readOnly, seed: nil)
+        }
+        surface.unlock(options: [], seed: nil)
+        stale[back] = .null
+        stale[front] = changed
+        front = back
+
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        layer?.contents = surface
+        CATransaction.commit()
+    }
+
+    private func makeSurfaces(width: Int, height: Int) {
+        frameSize = CGSize(width: width, height: height)
+        let properties: [IOSurfacePropertyKey: Any] = [
+            .width: width, .height: height, .bytesPerElement: 4,
+            .pixelFormat: 0x4247_5241, // 'BGRA'
+        ]
+        surfaces = (0..<2).compactMap { _ in IOSurface(properties: properties) }
+        let srgb = CGColorSpace(name: CGColorSpace.sRGB)?.copyPropertyList()
+        for surface in surfaces {
+            if let srgb { IOSurfaceSetValue(unsafeBitCast(surface, to: IOSurfaceRef.self), kIOSurfaceColorSpace, srgb) }
+            surface.lock(options: [], seed: nil)
+            memset(surface.baseAddress, 0, surface.allocationSize)
+            surface.unlock(options: [], seed: nil)
+        }
+        front = 0
+        // Nenhuma tem nada ainda: as duas precisam da tela toda.
+        let full = CGRect(x: 0, y: 0, width: width, height: height)
+        stale = [full, full]
+        if surfaces.count == 2 {
+            surfaces[0].lock(options: [], seed: nil)
+            _ = client?.copyDirty(into: surfaces[0].baseAddress, bytesPerRow: surfaces[0].bytesPerRow, force: true)
+            surfaces[0].unlock(options: [], seed: nil)
+            stale = [.null, full]
+            layer?.contents = surfaces[0]
+        }
+    }
+
+    private func copy(_ rect: CGRect, from source: IOSurface, to target: IOSurface) {
+        guard !rect.isNull, !rect.isEmpty else { return }
+        let x = Int(rect.minX), y = Int(rect.minY), w = Int(rect.width), h = Int(rect.height)
+        for row in y..<(y + h) {
+            memcpy(target.baseAddress + row * target.bytesPerRow + x * 4,
+                   source.baseAddress + row * source.bytesPerRow + x * 4, w * 4)
+        }
     }
 
     // MARK: Foco
@@ -75,7 +151,13 @@ final class QEMUScreenView: NSView {
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
         NotificationCenter.default.removeObserver(self)
+        displayLink?.invalidate()
+        displayLink = nil
         guard let window else { return }
+        // Ritmo do monitor em que a janela está (60/120 Hz); pausa sozinho fora da tela.
+        let link = displayLink(target: self, selector: #selector(refresh(_:)))
+        link.add(to: .main, forMode: .common)
+        displayLink = link
         DispatchQueue.main.async { [weak self] in
             guard let self, self.window != nil else { return }
             self.window?.makeFirstResponder(self)
@@ -261,4 +343,13 @@ enum QEMUKeyMap {
         0x72: 0xD2, 0x73: 0xC7, 0x74: 0xC9, 0x75: 0xD3, 0x77: 0xCF, 0x79: 0xD1,
         0x7B: 0xCB, 0x7C: 0xCD, 0x7D: 0xD0, 0x7E: 0xC8, 0x6E: 0xDD,
     ]
+}
+
+private extension CGRect {
+    /// Retângulo que cobre a parte de `self` fora de `other` (aproximação: se `other` não cobre
+    /// tudo, copia `self` inteiro — copiar a mais é seguro, a menos não).
+    func subtracting(_ other: CGRect) -> CGRect {
+        guard !other.isNull, other.contains(self) else { return self }
+        return .null
+    }
 }

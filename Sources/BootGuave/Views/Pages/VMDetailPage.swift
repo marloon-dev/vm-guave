@@ -2,9 +2,9 @@ import SwiftUI
 
 /// Detalhe de uma VM dentro de "Máquinas Virtuais", com caminho de volta para a lista.
 struct VMDetailPage: View {
-    @ObservedObject var runner: VMRunner
-    @EnvironmentObject private var library: VMLibrary
-    @ObservedObject private var router = AppRouter.shared
+    let runner: VMRunner
+    @Environment(VMLibrary.self) private var library
+    private let router = AppRouter.shared
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {

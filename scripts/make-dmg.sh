@@ -30,4 +30,12 @@ if [[ -n "${SIGN_IDENTITY:-}" ]]; then
     codesign --force --sign "$SIGN_IDENTITY" "$DMG"
 fi
 
+# Com Developer ID: NOTARY_PROFILE é o perfil salvo com
+#   xcrun notarytool store-credentials <perfil> --apple-id … --team-id …
+# A Apple confere o app e o "grampo" deixa o Gatekeeper aceitá-lo sem internet.
+if [[ -n "${SIGN_IDENTITY:-}" && -n "${NOTARY_PROFILE:-}" ]]; then
+    xcrun notarytool submit "$DMG" --keychain-profile "$NOTARY_PROFILE" --wait
+    xcrun stapler staple "$DMG"
+fi
+
 echo "Instalador: $DMG"

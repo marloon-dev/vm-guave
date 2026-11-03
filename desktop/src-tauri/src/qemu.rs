@@ -2,14 +2,32 @@
 //! QMP (controle da VM ligada) e qemu-img (discos e snapshots).
 use crate::vm::{GuestOs, VmConfig, VmPaths};
 use serde_json::Value;
+use serde::{Deserialize, Serialize};
 use std::{
     env, fs,
-    io::{BufRead, BufReader, Write},
-    net::{SocketAddr, TcpListener, TcpStream},
+    io::{BufRead, BufReader, Read, Write},
+    net::{SocketAddr, TcpStream},
     path::{Path, PathBuf},
     process::Command,
     time::Duration,
 };
+
+#[cfg(unix)]
+use std::os::unix::net::UnixStream;
+#[cfg(windows)]
+use uds_windows::UnixStream;
+
+/// Onde o QMP (controle da VM) escuta.
+///
+/// Socket Unix numa pasta só do usuário: outro usuário ou programa do computador não consegue
+/// se conectar. Pelo TCP de antes, qualquer processo local controlava a VM sem senha — e o QMP
+/// executa comandos (`migrate "exec:…"`). `Tcp` fica só para VMs ligadas por versões antigas.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum QmpEndpoint {
+    Unix(PathBuf),
+    Tcp(u16),
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Arch {
@@ -216,7 +234,7 @@ pub fn uses_uefi(config: &VmConfig, host: &Host) -> bool {
     host.firmware.is_some() && (config.uefi || host.arch == Arch::Aarch64)
 }
 
-pub fn build_args(config: &VmConfig, paths: &VmPaths, host: &Host, qmp_port: u16) -> Result<Vec<String>, String> {
+pub fn build_args(config: &VmConfig, paths: &VmPaths, host: &Host, qmp_socket: &Path) -> Result<Vec<String>, String> {
     let mut a: Vec<String> = Vec::new();
     let mut push = |items: &[&str]| a.extend(items.iter().map(|s| s.to_string()));
 
@@ -250,7 +268,10 @@ pub fn build_args(config: &VmConfig, paths: &VmPaths, host: &Host, qmp_port: u16
 
     // NVMe: Linux e Windows 10/11 têm driver nativo, então a instalação enxerga o disco sem drivers extras.
     let serial: String = config.id.chars().filter(|c| c.is_ascii_alphanumeric()).take(12).collect();
-    push(&["-drive", &format!("if=none,id=hd0,file={},format=qcow2,discard=unmap", opt(&paths.disk()))]);
+    // l2-cache-size: a tabela L2 inteira em memória (1 MB por 8 GB de disco com clusters de
+    // 64 KB); sem isso, acesso aleatório em discos grandes relê metadados do arquivo.
+    let l2_mb = ((config.disk_gb + 7) / 8).clamp(1, 32);
+    push(&["-drive", &format!("if=none,id=hd0,file={},format=qcow2,discard=unmap,detect-zeroes=unmap,l2-cache-size={l2_mb}M", opt(&paths.disk()))]);
     push(&["-device", &format!("nvme,drive=hd0,serial=VMG{serial},bootindex=0")]);
 
     if let Some(iso) = config.iso.as_deref().filter(|s| !s.is_empty()) {
@@ -274,25 +295,74 @@ pub fn build_args(config: &VmConfig, paths: &VmPaths, host: &Host, qmp_port: u16
     let nic = if windows { "e1000e" } else { "virtio-net-pci" };
     push(&["-device", &format!("{nic},netdev=net0,mac={}", config.mac)]);
 
-    push(&["-qmp", &format!("tcp:127.0.0.1:{qmp_port},server=on,wait=off")]);
+    push(&["-qmp", &format!("unix:{},server=on,wait=off", opt(qmp_socket))]);
     a.extend(host.accel.args());
     Ok(a)
 }
 
-pub fn free_port() -> Result<u16, String> {
-    let listener = TcpListener::bind("127.0.0.1:0").map_err(|e| e.to_string())?;
-    listener.local_addr().map(|a| a.port()).map_err(|e| e.to_string())
+/// Caminho do socket do QMP, numa pasta só do usuário. Sockets Unix aceitam caminhos curtos
+/// (~100 bytes), por isso o nome usa só o começo do ID e a pasta fica perto da raiz:
+/// - Linux: $XDG_RUNTIME_DIR/vm-guave (tmpfs do usuário); sem ele, <temp>/vm-guave-<usuário>.
+/// - Windows: %LOCALAPPDATA%\vmg (só o usuário tem acesso ao AppData).
+/// Se a pasta já existir e não for nossa, `set_permissions` falha e a VM não liga (melhor que
+/// abrir o controle num lugar que outra pessoa enxerga).
+pub fn qmp_socket_path(_paths: &VmPaths, id: &str) -> Result<PathBuf, String> {
+    let short: String = id.chars().filter(|c| c.is_ascii_alphanumeric()).take(12).collect();
+    #[cfg(unix)]
+    let dir = {
+        use std::os::unix::fs::PermissionsExt;
+        let dir = match env::var_os("XDG_RUNTIME_DIR").map(PathBuf::from).filter(|p| p.is_dir()) {
+            Some(runtime) => runtime.join("vm-guave"),
+            None => {
+                let user = env::var("USER").unwrap_or_else(|_| "user".into());
+                env::temp_dir().join(format!("vm-guave-{user}"))
+            }
+        };
+        fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+        fs::set_permissions(&dir, fs::Permissions::from_mode(0o700))
+            .map_err(|e| format!("Pasta do controle da VM sem permissão própria ({}): {e}", dir.display()))?;
+        dir
+    };
+    #[cfg(windows)]
+    let dir = {
+        let base = dirs::data_local_dir().ok_or("Pasta AppData\\Local não encontrada")?;
+        let dir = base.join("vmg");
+        fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+        dir
+    };
+    let path = dir.join(format!("{short}.sock"));
+    if path.as_os_str().len() > 100 {
+        return Err(format!("Caminho longo demais para o socket do QMP: {}", path.display()));
+    }
+    Ok(path)
 }
 
 // MARK: QMP
 
+type Reader = BufReader<Box<dyn Read + Send>>;
+type Writer = Box<dyn Write + Send>;
+
+fn connect(endpoint: &QmpEndpoint) -> Result<(Reader, Writer), String> {
+    match endpoint {
+        QmpEndpoint::Unix(path) => {
+            let stream = UnixStream::connect(path).map_err(|e| e.to_string())?;
+            stream.set_read_timeout(Some(Duration::from_secs(3))).ok();
+            let reader: Box<dyn Read + Send> = Box::new(stream.try_clone().map_err(|e| e.to_string())?);
+            Ok((BufReader::new(reader), Box::new(stream)))
+        }
+        QmpEndpoint::Tcp(port) => {
+            let addr = SocketAddr::from(([127, 0, 0, 1], *port));
+            let stream = TcpStream::connect_timeout(&addr, Duration::from_millis(400)).map_err(|e| e.to_string())?;
+            stream.set_read_timeout(Some(Duration::from_secs(3))).ok();
+            let reader: Box<dyn Read + Send> = Box::new(stream.try_clone().map_err(|e| e.to_string())?);
+            Ok((BufReader::new(reader), Box::new(stream)))
+        }
+    }
+}
+
 /// Abre uma conexão QMP, negocia e executa um comando. Uma conexão por comando.
-pub fn qmp(port: u16, command: &str) -> Result<Value, String> {
-    let addr = SocketAddr::from(([127, 0, 0, 1], port));
-    let stream = TcpStream::connect_timeout(&addr, Duration::from_millis(400)).map_err(|e| e.to_string())?;
-    stream.set_read_timeout(Some(Duration::from_secs(3))).ok();
-    let mut reader = BufReader::new(stream.try_clone().map_err(|e| e.to_string())?);
-    let mut writer = stream;
+pub fn qmp(endpoint: &QmpEndpoint, command: &str) -> Result<Value, String> {
+    let (mut reader, mut writer) = connect(endpoint)?;
 
     let greeting = read_reply(&mut reader)?;
     if greeting.get("QMP").is_none() {
@@ -304,12 +374,12 @@ pub fn qmp(port: u16, command: &str) -> Result<Value, String> {
     read_reply(&mut reader)
 }
 
-fn send(writer: &mut TcpStream, line: &str) -> Result<(), String> {
+fn send(writer: &mut Writer, line: &str) -> Result<(), String> {
     writer.write_all(format!("{line}\n").as_bytes()).map_err(|e| e.to_string())
 }
 
 /// Lê até a saudação, um "return" ou um "error"; eventos assíncronos são ignorados.
-fn read_reply(reader: &mut BufReader<TcpStream>) -> Result<Value, String> {
+fn read_reply(reader: &mut Reader) -> Result<Value, String> {
     loop {
         let mut line = String::new();
         if reader.read_line(&mut line).map_err(|e| e.to_string())? == 0 {
@@ -340,7 +410,8 @@ fn run_img(img: &Path, args: &[&str]) -> Result<String, String> {
 }
 
 pub fn create_disk(img: &Path, path: &Path, size_gb: u32) -> Result<(), String> {
-    run_img(img, &["create", "-q", "-f", "qcow2", &path.to_string_lossy(), &format!("{size_gb}G")]).map(|_| ())
+    // Clusters de 128 KB com subclusters: menos metadados e menos trabalho na 1ª gravação.
+    run_img(img, &["create", "-q", "-f", "qcow2", "-o", "cluster_size=128k,extended_l2=on", &path.to_string_lossy(), &format!("{size_gb}G")]).map(|_| ())
 }
 
 pub fn resize_disk(img: &Path, path: &Path, size_gb: u32) -> Result<(), String> {
@@ -419,14 +490,16 @@ mod tests {
     fn x86_linux_args() {
         let cfg = sample(GuestOs::Linux);
         let paths = VmPaths::new(&cfg.id).unwrap();
-        let args = build_args(&cfg, &paths, &host(Arch::X86_64, Accel::Kvm), 4444).unwrap().join(" ");
+        let args = build_args(&cfg, &paths, &host(Arch::X86_64, Accel::Kvm), Path::new("/run/user/1000/vm-guave/abc.sock")).unwrap().join(" ");
         assert!(args.contains("-machine q35"));
         assert!(args.contains("-cpu host"));
         assert!(args.contains("file=/fw/code,,1.fd"), "vírgula escapada");
         assert!(args.contains("virtio-vga"));
         assert!(args.contains("virtio-net-pci,netdev=net0,mac=52:54:00:12:34:56"));
         assert!(args.contains("hostfwd=tcp:127.0.0.1:2222-:22"));
-        assert!(args.contains("tcp:127.0.0.1:4444,server=on,wait=off"));
+        assert!(args.contains("-qmp unix:/run/user/1000/vm-guave/abc.sock,server=on,wait=off"));
+        assert!(!args.contains("-qmp tcp"), "QMP não pode ficar em TCP");
+        assert!(args.contains("l2-cache-size=4M"), "cache L2 para o disco de 32 GB");
         assert!(args.ends_with("-accel kvm"));
     }
 
@@ -435,7 +508,7 @@ mod tests {
         let mut cfg = sample(GuestOs::Windows);
         cfg.uefi = false;
         let paths = VmPaths::new(&cfg.id).unwrap();
-        let args = build_args(&cfg, &paths, &host(Arch::X86_64, Accel::Whpx), 1).unwrap().join(" ");
+        let args = build_args(&cfg, &paths, &host(Arch::X86_64, Accel::Whpx), Path::new("/tmp/q.sock")).unwrap().join(" ");
         assert!(!args.contains("pflash"), "BIOS quando UEFI desligado");
         assert!(args.contains("-device VGA"));
         assert!(args.contains("e1000e"));
@@ -448,7 +521,7 @@ mod tests {
         let mut cfg = sample(GuestOs::Linux);
         cfg.iso = Some("/nao/existe.iso".into());
         let paths = VmPaths::new(&cfg.id).unwrap();
-        assert!(build_args(&cfg, &paths, &host(Arch::Aarch64, Accel::Hvf), 1).is_err());
+        assert!(build_args(&cfg, &paths, &host(Arch::Aarch64, Accel::Hvf), Path::new("/tmp/q.sock")).is_err());
     }
 
     #[test]
@@ -477,8 +550,9 @@ mod tests {
         snapshot(&img, &paths.disk(), "-c", "limpo").unwrap();
         assert_eq!(list_snapshots(&img, &paths.disk()).unwrap()[0].name, "limpo");
 
-        let port = free_port().unwrap();
-        let args = build_args(&cfg, &paths, &host, port).unwrap();
+        let socket = qmp_socket_path(&paths, &cfg.id).unwrap();
+        let endpoint = QmpEndpoint::Unix(socket.clone());
+        let args = build_args(&cfg, &paths, &host, &socket).unwrap();
         println!("{} {}", host.qemu().unwrap().display(), args.join(" "));
         let mut child = Command::new(host.qemu().unwrap())
             .args(&args)
@@ -489,19 +563,19 @@ mod tests {
         let mut status = Err(String::new());
         for _ in 0..30 {
             std::thread::sleep(Duration::from_millis(300));
-            status = qmp(port, "query-status");
+            status = qmp(&endpoint, "query-status");
             if status.is_ok() {
                 break;
             }
         }
         assert_eq!(status.unwrap()["return"]["status"], "running");
-        qmp(port, "stop").unwrap();
-        assert_eq!(qmp(port, "query-status").unwrap()["return"]["status"], "paused");
-        qmp(port, "cont").unwrap();
-        qmp(port, "system_reset").unwrap();
+        qmp(&endpoint, "stop").unwrap();
+        assert_eq!(qmp(&endpoint, "query-status").unwrap()["return"]["status"], "paused");
+        qmp(&endpoint, "cont").unwrap();
+        qmp(&endpoint, "system_reset").unwrap();
         // Snapshots exigem a VM desligada (o disco fica travado).
         assert!(snapshot(&img, &paths.disk(), "-c", "ligada").is_err());
-        let _ = qmp(port, "quit");
+        let _ = qmp(&endpoint, "quit");
         assert!(child.wait().unwrap().success());
         snapshot(&img, &paths.disk(), "-d", "limpo").unwrap();
         fs::remove_dir_all(&home).unwrap();

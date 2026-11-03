@@ -1,19 +1,25 @@
+import Observation
 import AppKit
 import ControlProtocol
 import CryptoKit
 import Foundation
 
 /// Procura versões novas na última release do GitHub (o repositório é público) e atualiza o app:
-/// baixa o .dmg, confere o SHA-256 publicado pelo GitHub, copia o app de dentro e troca o app
+/// baixa o .dmg, confere o SHA-256 publicado pelo GitHub e a assinatura Ed25519 do VM Guave, copia o app de dentro e troca o app
 /// instalado quando ele fecha. Os avisos usam só os alertas padrão do macOS, sem mexer nas telas.
 ///
 /// "Na hora": verifica ao abrir, a cada 10 minutos e sempre que o app volta para a frente
 /// (no máximo uma vez a cada 2 minutos). Para publicar, use scripts/release.sh.
 @MainActor
-final class UpdateChecker: ObservableObject {
+@Observable
+final class UpdateChecker {
     static let shared = UpdateChecker()
     static let feedURL = URL(string: "https://api.github.com/repos/marloon-dev/vm-guave/releases/latest")!
     static let siteURL = URL(string: "https://marloon-dev.github.io/vm-guave/")!
+    /// Chave pública Ed25519 das releases. A privada fica só no Keychain de quem publica
+    /// (scripts/update-signing.swift); sem a assinatura dela, nenhuma atualização é instalada,
+    /// mesmo que alguém consiga publicar no GitHub.
+    nonisolated static let signingPublicKey = "/XrQ89hXWupunTtgLHGqSTknixnQR/d5nO4vuClgSZo="
     private static let interval: TimeInterval = 10 * 60
     private static let minimumGap: TimeInterval = 2 * 60
 
@@ -25,26 +31,30 @@ final class UpdateChecker: ObservableObject {
         case failed(String)
     }
 
-    @Published private(set) var status: Status = .idle
-    @Published private(set) var lastCheck: Date? = UserDefaults.standard.object(forKey: AppSettings.Key.lastUpdateCheck) as? Date
+    private(set) var status: Status = .idle
+    private(set) var lastCheck: Date? = UserDefaults.standard.object(forKey: AppSettings.Key.lastUpdateCheck) as? Date
 
     static var currentVersion: String {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
     }
 
     /// Última release encontrada mais nova que este app.
-    private var latest: Release?
-    private var timer: Timer?
-    private var activationObserver: Any?
+    @ObservationIgnored private var latest: Release?
+    /// Resposta anterior da API: com If-None-Match o GitHub responde 304 (sem corpo e sem
+    /// gastar o limite de consultas) quando nada mudou.
+    @ObservationIgnored private var feedETag: String?
+    @ObservationIgnored private var feedData: Data?
+    @ObservationIgnored private var timer: Timer?
+    @ObservationIgnored private var activationObserver: Any?
     /// Versões já anunciadas nesta sessão ("Depois" não insiste até o app abrir de novo).
-    private var announced: Set<String> = []
+    @ObservationIgnored private var announced: Set<String> = []
     /// Aviso esperando o app voltar para a frente (não interrompe quem está em outro app).
-    private var pendingAnnouncement: Release?
-    private var downloading = false
+    @ObservationIgnored private var pendingAnnouncement: Release?
+    @ObservationIgnored private var downloading = false
     /// App novo já copiado do .dmg; é instalado quando o VM Guave fecha.
-    private var stagedApp: URL?
-    private var stagedVersion: String?
-    private var relaunchAfterInstall = false
+    @ObservationIgnored private var stagedApp: URL?
+    @ObservationIgnored private var stagedVersion: String?
+    @ObservationIgnored private var relaunchAfterInstall = false
 
     private var downloadsDir: URL {
         FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
@@ -93,9 +103,17 @@ final class UpdateChecker: ObservableObject {
             request.cachePolicy = .reloadIgnoringLocalCacheData
             request.timeoutInterval = 20
             request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
-            let (data, response) = try await URLSession.shared.data(for: request)
-            if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
-                throw DownloadError.httpStatus(http.statusCode)
+            if let feedETag, feedData != nil { request.setValue(feedETag, forHTTPHeaderField: "If-None-Match") }
+            var (data, response) = try await URLSession.shared.data(for: request)
+            if let http = response as? HTTPURLResponse {
+                if http.statusCode == 304, let cached = feedData {
+                    data = cached
+                } else if !(200..<300).contains(http.statusCode) {
+                    throw DownloadError.httpStatus(http.statusCode)
+                } else {
+                    feedETag = http.value(forHTTPHeaderField: "ETag")
+                    feedData = data
+                }
             }
             let release = try Release.parse(data)
             if Self.isNewer(release.version, than: Self.currentVersion) {
@@ -224,7 +242,10 @@ final class UpdateChecker: ObservableObject {
                 try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
                 let dmg = dir.appendingPathComponent(dmgURL.lastPathComponent)
                 _ = try await FileDownloader(destination: dmg) { _ in }.download(from: dmgURL)
-                let staged = try await Self.prepare(dmg: dmg, release: release, in: dir)
+                guard let signatureURL = release.signatureURL else { throw UpdateError.badSignature }
+                let signature = dir.appendingPathComponent(signatureURL.lastPathComponent)
+                _ = try await FileDownloader(destination: signature) { _ in }.download(from: signatureURL)
+                let staged = try await Self.prepare(dmg: dmg, signature: signature, release: release, in: dir)
                 try? FileManager.default.removeItem(at: dir)
                 stagedApp = staged
                 stagedVersion = release.version
@@ -237,6 +258,7 @@ final class UpdateChecker: ObservableObject {
 
     enum UpdateError: LocalizedError {
         case checksumMismatch
+        case badSignature
         case appNotFound
         case wrongApp(String)
 
@@ -244,6 +266,8 @@ final class UpdateChecker: ObservableObject {
             switch self {
             case .checksumMismatch:
                 return String(localized: "O arquivo baixado não confere com o publicado (SHA-256 diferente). Nada foi instalado.")
+            case .badSignature:
+                return String(localized: "A atualização não tem a assinatura do VM Guave. Por segurança, nada foi instalado.")
             case .appNotFound:
                 return String(localized: "O instalador baixado não contém o VM Guave.")
             case .wrongApp(let detail):
@@ -254,10 +278,19 @@ final class UpdateChecker: ObservableObject {
 
     /// Confere o .dmg, monta sem abrir janela, confere o app de dentro e copia ao lado do app
     /// instalado (mesmo volume: a troca vira um simples "mv").
-    nonisolated private static func prepare(dmg: URL, release: Release, in dir: URL) async throws -> URL {
-        if let expected = release.sha256 {
-            let actual = try await Task.detached { try sha256(of: dmg) }.value
-            guard actual == expected.lowercased() else { throw UpdateError.checksumMismatch }
+    nonisolated private static func prepare(dmg: URL, signature: URL, release: Release, in dir: URL) async throws -> URL {
+        // Sem o hash publicado não há o que conferir: recusa em vez de pular a verificação.
+        guard let expected = release.sha256 else { throw UpdateError.checksumMismatch }
+        let digest = try await Task.detached { try sha256(of: dmg) }.value
+        let actual = digest.map { String(format: "%02x", $0) }.joined()
+        guard actual == expected.lowercased() else { throw UpdateError.checksumMismatch }
+        // Autenticidade: a assinatura Ed25519 do hash tem de ser da chave do VM Guave.
+        guard let text = try? String(contentsOf: signature, encoding: .utf8),
+              let signatureData = Data(base64Encoded: text.trimmingCharacters(in: .whitespacesAndNewlines)),
+              let keyData = Data(base64Encoded: signingPublicKey),
+              let key = try? Curve25519.Signing.PublicKey(rawRepresentation: keyData),
+              key.isValidSignature(signatureData, for: digest) else {
+            throw UpdateError.badSignature
         }
         let hdiutil = URL(fileURLWithPath: "/usr/bin/hdiutil")
         let mount = dir.appendingPathComponent("mount", isDirectory: true)
@@ -284,14 +317,14 @@ final class UpdateChecker: ObservableObject {
         return staged
     }
 
-    nonisolated private static func sha256(of url: URL) throws -> String {
+    nonisolated private static func sha256(of url: URL) throws -> Data {
         let handle = try FileHandle(forReadingFrom: url)
         defer { try? handle.close() }
         var hasher = SHA256()
         while let chunk = try handle.read(upToCount: 4 * 1024 * 1024), !chunk.isEmpty {
             hasher.update(data: chunk)
         }
-        return hasher.finalize().map { String(format: "%02x", $0) }.joined()
+        return Data(hasher.finalize())
     }
 
     // MARK: Instalar ao fechar
@@ -354,6 +387,8 @@ private struct Release: Sendable {
     let dmgURL: URL?
     /// SHA-256 do .dmg calculado pelo GitHub ("sha256:…" no campo digest).
     let sha256: String?
+    /// Assinatura Ed25519 do .dmg (<nome>.dmg.sig, enviada pelo scripts/release.sh).
+    let signatureURL: URL?
 
     private struct Payload: Decodable {
         struct Asset: Decodable {
@@ -376,7 +411,8 @@ private struct Release: Sendable {
             notes: payload.body ?? "",
             pageURL: payload.html_url,
             dmgURL: dmg?.browser_download_url,
-            sha256: dmg?.digest.flatMap { $0.hasPrefix("sha256:") ? String($0.dropFirst(7)).lowercased() : nil }
+            sha256: dmg?.digest.flatMap { $0.hasPrefix("sha256:") ? String($0.dropFirst(7)).lowercased() : nil },
+            signatureURL: dmg.flatMap { dmg in payload.assets.first { $0.name == dmg.name + ".sig" }?.browser_download_url }
         )
     }
 }

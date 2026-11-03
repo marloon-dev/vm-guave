@@ -58,12 +58,37 @@ struct VMBundle {
         extraDisksURL.appendingPathComponent("\(disk.id.uuidString).img")
     }
 
+    /// VMs criptografadas: o config.json fica fora do cofre (o app precisa listar a VM bloqueada),
+    /// então caminhos de arquivos do Mac e portas vão para este arquivo dentro do cofre.
+    var privateConfigURL: URL { mountURL.appendingPathComponent("config-private.json") }
+
     func loadConfig() throws -> VMConfig {
-        try JSONDecoder.iso8601.decode(VMConfig.self, from: Data(contentsOf: configURL))
+        var config = try JSONDecoder.iso8601.decode(VMConfig.self, from: Data(contentsOf: configURL))
+        if isEncrypted, isUnlocked,
+           let data = try? Data(contentsOf: privateConfigURL),
+           let details = try? JSONDecoder.iso8601.decode(VMPrivateDetails.self, from: data) {
+            details.apply(to: &config)
+        }
+        return config
     }
 
     func save(_ config: VMConfig) throws {
-        try JSONEncoder.iso8601.encode(config).write(to: configURL, options: .atomic)
+        var outer = config
+        // Bloqueada, não dá para gravar no cofre: um detalhe definido agora fica no config.json
+        // até a próxima vez que ela for desbloqueada (aí vai para dentro).
+        if isEncrypted, isUnlocked {
+            try JSONEncoder.iso8601.encode(VMPrivateDetails(config)).write(to: privateConfigURL, options: .atomic)
+            VMPrivateDetails.strip(&outer)
+        }
+        try JSONEncoder.iso8601.encode(outer).write(to: configURL, options: .atomic)
+    }
+
+    /// Ainda há detalhes privados no config.json de fora (VM criptografada antes desta versão).
+    var needsPrivateMigration: Bool {
+        guard isEncrypted, isUnlocked,
+              let data = try? Data(contentsOf: configURL),
+              let config = try? JSONDecoder.iso8601.decode(VMConfig.self, from: data) else { return false }
+        return !VMPrivateDetails(config).isEmpty
     }
 
     /// Cria o pacote: diretório, disco esparso (não ocupa espaço até a VM escrever) e config.
@@ -74,7 +99,10 @@ struct VMBundle {
         if config.os.usesQEMU {
             let qemuImg = try QEMUTools.require(QEMUTools.qemuImg, "qemu-img")
             let vars = try QEMUTools.require(QEMUTools.firmwareVarsTemplate, String(localized: "Firmware EFI do QEMU"))
-            try runSync(qemuImg, ["create", "-q", "-f", "qcow2", bundle.qcow2DiskURL.path, "\(config.diskGB)G"])
+            // Clusters de 128 KB com subclusters (extended_l2): menos metadados e menos trabalho
+            // na primeira gravação de cada bloco.
+            try runSync(qemuImg, ["create", "-q", "-f", "qcow2", "-o", "cluster_size=128k,extended_l2=on",
+                                  bundle.qcow2DiskURL.path, "\(config.diskGB)G"])
             try FileManager.default.copyItem(at: vars, to: bundle.efiVariableStoreURL)
         } else {
             try createBlankDisk(at: bundle.diskURL, sizeGB: config.diskGB)
@@ -259,5 +287,45 @@ enum BootGuaveError: LocalizedError {
         case .hostPortInUse(let port, let owner):
             return String(localized: "A porta \(port) do Mac já é redirecionada para \"\(owner)\", que está na mesma rede. Escolha outra porta.")
         }
+    }
+}
+
+/// Campos do VMConfig que revelam arquivos do Mac ou serviços da VM; nas VMs criptografadas
+/// ficam dentro do cofre (config-private.json).
+struct VMPrivateDetails: Codable {
+    var sharedFolderPath: String?
+    var installerISOPath: String?
+    var driversISOPath: String?
+    var installerIPSWPath: String?
+    var portForwards: [PortForward]
+
+    init(_ config: VMConfig) {
+        sharedFolderPath = config.sharedFolderPath
+        installerISOPath = config.installerISOPath
+        driversISOPath = config.driversISOPath
+        installerIPSWPath = config.installerIPSWPath
+        portForwards = config.portForwards
+    }
+
+    var isEmpty: Bool {
+        sharedFolderPath == nil && installerISOPath == nil && driversISOPath == nil
+            && installerIPSWPath == nil && portForwards.isEmpty
+    }
+
+    /// Junta com o config de fora; um valor definido lá (com a VM bloqueada) vale mais.
+    func apply(to config: inout VMConfig) {
+        config.sharedFolderPath = config.sharedFolderPath ?? sharedFolderPath
+        config.installerISOPath = config.installerISOPath ?? installerISOPath
+        config.driversISOPath = config.driversISOPath ?? driversISOPath
+        config.installerIPSWPath = config.installerIPSWPath ?? installerIPSWPath
+        if config.portForwards.isEmpty { config.portForwards = portForwards }
+    }
+
+    static func strip(_ config: inout VMConfig) {
+        config.sharedFolderPath = nil
+        config.installerISOPath = nil
+        config.driversISOPath = nil
+        config.installerIPSWPath = nil
+        config.portForwards = []
     }
 }

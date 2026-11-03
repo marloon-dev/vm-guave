@@ -1,4 +1,6 @@
+import Observation
 import Darwin
+import AppKit
 import Foundation
 
 /// Um ponto do gráfico: uso de CPU e de memória do Mac, de 0 a 1.
@@ -11,14 +13,15 @@ struct UsageSample: Codable, Hashable {
 /// Mede CPU e memória do Mac enquanto o app está aberto. O macOS não informa o uso de dentro de
 /// cada VM, então o gráfico mostra o Mac inteiro (que inclui as VMs ligadas).
 @MainActor
-final class HostMonitor: ObservableObject {
+@Observable
+final class HostMonitor {
     static let shared = HostMonitor()
 
     /// Últimos valores (atualizados a cada 5 s).
-    @Published private(set) var cpu: Double = 0
-    @Published private(set) var memoryUsedBytes: UInt64 = 0
+    private(set) var cpu: Double = 0
+    private(set) var memoryUsedBytes: UInt64 = 0
     /// Um ponto por minuto (média), até 24 h.
-    @Published private(set) var history: [UsageSample] = []
+    private(set) var history: [UsageSample] = []
 
     let coreCount = ProcessInfo.processInfo.activeProcessorCount
     let memoryTotalBytes = ProcessInfo.processInfo.physicalMemory
@@ -27,10 +30,10 @@ final class HostMonitor: ObservableObject {
         memoryTotalBytes == 0 ? 0 : Double(memoryUsedBytes) / Double(memoryTotalBytes)
     }
 
-    private var previousTicks: (used: UInt64, total: UInt64)?
-    private var minuteSamples: [(cpu: Double, memory: Double)] = []
-    private var timer: Timer?
-    private var lastSave = Date.distantPast
+    @ObservationIgnored private var previousTicks: (used: UInt64, total: UInt64)?
+    @ObservationIgnored private var minuteSamples: [(cpu: Double, memory: Double)] = []
+    @ObservationIgnored private var timer: Timer?
+    @ObservationIgnored private var lastSave = Date.distantPast
 
     private var fileURL: URL {
         VMBundle.libraryURL.deletingLastPathComponent().appendingPathComponent("usage-history.json")
@@ -50,6 +53,8 @@ final class HostMonitor: ObservableObject {
         timer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.sample() }
         }
+        // Folga para o macOS juntar este despertar com outros (economiza bateria).
+        timer?.tolerance = 1
     }
 
     /// Grava o histórico (também chamado ao fechar o app).
@@ -61,15 +66,23 @@ final class HostMonitor: ObservableObject {
     }
 
     private func sample() {
+        var cpuNow = cpu
         if let ticks = Self.cpuTicks() {
             if let previous = previousTicks, ticks.total > previous.total {
-                cpu = Double(ticks.used - previous.used) / Double(ticks.total - previous.total)
+                cpuNow = Double(ticks.used - previous.used) / Double(ticks.total - previous.total)
             }
             previousTicks = ticks
         }
-        if let used = Self.memoryUsed() { memoryUsedBytes = used }
+        let memoryNow = Self.memoryUsed() ?? memoryUsedBytes
+        // Com o app escondido ninguém vê os números: não redesenha a interface à toa.
+        // O histórico de 24 h continua sendo coletado.
+        if NSApp?.occlusionState.contains(.visible) ?? true {
+            if cpu != cpuNow { cpu = cpuNow }
+            if memoryUsedBytes != memoryNow { memoryUsedBytes = memoryNow }
+        }
 
-        minuteSamples.append((cpu, memoryFraction))
+        let memoryFractionNow = memoryTotalBytes > 0 ? Double(memoryNow) / Double(memoryTotalBytes) : 0
+        minuteSamples.append((cpuNow, memoryFractionNow))
         if minuteSamples.count >= 12 { // 12 × 5 s = 1 min
             let n = Double(minuteSamples.count)
             history.append(UsageSample(

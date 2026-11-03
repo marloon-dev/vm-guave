@@ -2,8 +2,8 @@ import AppKit
 import SwiftUI
 
 struct ImagesPage: View {
-    @ObservedObject private var images = ImageLibrary.shared
-    @ObservedObject private var router = AppRouter.shared
+    private let images = ImageLibrary.shared
+    private let router = AppRouter.shared
     @State private var search = ""
     @State private var family: Family = .all
 
@@ -75,8 +75,8 @@ struct ImagesPage: View {
 
 private struct ImageCard: View {
     let image: InstallImage
-    @ObservedObject private var library = ImageLibrary.shared
-    @ObservedObject private var router = AppRouter.shared
+    private let library = ImageLibrary.shared
+    private let router = AppRouter.shared
 
     private var progress: Double?? { library.downloads[image.id] }
 

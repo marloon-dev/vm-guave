@@ -447,3 +447,9 @@
 "Salva o estado das VMs e fecha. VMs Linux e macOS com rede personalizada não podem ser suspensas e são desligadas na hora." = "VM の状態を保存して終了します。カスタムネットワークの Linux と macOS の VM はサスペンドできないため、すぐにシャットダウンされます。";
 "Sem internet. Só o Mac e as outras VMs neste modo alcançam a VM, pelo IP fixo %@. Bom para laboratório isolado." = "インターネットなし。Mac とこのモードのほかの VM だけが、固定 IP %@ で VM に接続できます。隔離されたラボに最適です。";
 "tempo esgotado" = "タイムアウトしました";
+"\"%@\" foi importada" = "「%@」を読み込みました";
+"%@ não confere com o SHA-256 oficial (download corrompido ou adulterado) e foi apagado." = "%@ は公式の SHA-256 と一致しないため（ダウンロードの破損または改ざん）、削除しました。";
+"A atualização não tem a assinatura do VM Guave. Por segurança, nada foi instalado." = "このアップデートには VM Guave の署名がありません。安全のため、何もインストールしていません。";
+"Não encontrei a lista oficial de SHA-256 para conferir %@. O arquivo foi apagado por segurança; tente de novo mais tarde." = "%@ を確認するための公式 SHA-256 リストが見つかりませんでした。安全のためファイルを削除しました。しばらくしてからもう一度お試しください。";
+"O QEMU instalado (%lld.%lld) é antigo e pode ter falhas de segurança. Atualize com: brew upgrade qemu" = "インストールされている QEMU（%lld.%lld）は古く、セキュリティ上の問題がある可能性があります。brew upgrade qemu でアップデートしてください";
+"Por segurança, a pasta compartilhada, as ISOs conectadas e a opção de ligar quando o VM Guave abrir não vieram junto. Se precisar, configure de novo nos ajustes da VM." = "安全のため、共有フォルダ、接続した ISO、VM Guave を開いたときに起動する設定は読み込んでいません。必要なら VM の設定でもう一度設定してください。";

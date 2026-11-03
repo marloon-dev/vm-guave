@@ -161,19 +161,49 @@ enum VMNetworkFactory {
     }
 
     /// IP atual de uma VM em modo NAT, lido das concessões DHCP do macOS.
+    /// As telas chamam isto ao desenhar cada linha: o arquivo só é relido quando muda.
     nonisolated static func natIPAddress(forMAC mac: String) -> String? {
-        guard let leases = try? String(contentsOfFile: "/var/db/dhcpd_leases", encoding: .utf8) else { return nil }
         // O arquivo grava octetos sem zero à esquerda (ex.: "a:1b:..." para "0a:1b:...").
         let normalized = mac.lowercased().split(separator: ":").map { String(Int($0, radix: 16) ?? 0, radix: 16) }.joined(separator: ":")
-        var ip: String?
-        for line in leases.split(separator: "\n").map({ $0.trimmingCharacters(in: .whitespaces) }) {
-            if line.hasPrefix("ip_address=") {
-                ip = String(line.dropFirst("ip_address=".count))
-            } else if line.hasPrefix("hw_address="), line.hasSuffix(normalized) {
-                return ip
+        return LeaseCache.shared.addresses()[normalized]
+    }
+
+    /// Concessões do DHCP do macOS (MAC → IP), relidas só quando a data do arquivo muda.
+    private final class LeaseCache: @unchecked Sendable {
+        static let shared = LeaseCache()
+        private let path = "/var/db/dhcpd_leases"
+        private let lock = NSLock()
+        private var modified: Date?
+        private var table: [String: String] = [:]
+
+        func addresses() -> [String: String] {
+            let date = (try? FileManager.default.attributesOfItem(atPath: path))?[.modificationDate] as? Date
+            lock.lock()
+            defer { lock.unlock() }
+            guard let date else { return [:] }
+            if date != modified {
+                table = Self.parse((try? String(contentsOfFile: path, encoding: .utf8)) ?? "")
+                modified = date
             }
+            return table
         }
-        return nil
+
+        /// Cada bloco tem ip_address= antes de hw_address=1,<mac>.
+        private static func parse(_ leases: String) -> [String: String] {
+            var result: [String: String] = [:]
+            var ip: String?
+            for line in leases.split(separator: "\n").map({ $0.trimmingCharacters(in: .whitespaces) }) {
+                if line.hasPrefix("ip_address=") {
+                    ip = String(line.dropFirst("ip_address=".count))
+                } else if line.hasPrefix("hw_address="), let ip {
+                    let value = line.dropFirst("hw_address=".count)
+                    let mac = value.split(separator: ",").last.map(String.init) ?? String(value)
+                    // A primeira concessão do arquivo é a mais recente; não sobrescreve.
+                    if result[mac] == nil { result[mac] = ip }
+                }
+            }
+            return result
+        }
     }
 
     nonisolated private static func etherAddress(_ mac: String) -> ether_addr_t? {

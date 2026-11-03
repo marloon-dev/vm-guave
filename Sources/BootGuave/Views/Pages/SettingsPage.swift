@@ -52,7 +52,7 @@ private struct SettingsDraft: Equatable {
 }
 
 struct SettingsPage: View {
-    @ObservedObject private var router = AppRouter.shared
+    private let router = AppRouter.shared
     @State private var saved = SettingsDraft.load()
     @State private var draft = SettingsDraft.load()
     @State private var askRelaunch = false
@@ -271,7 +271,7 @@ struct SettingsPage: View {
 
 private struct UpdatesSection: View {
     @Binding var autoCheck: Bool
-    @ObservedObject private var checker = UpdateChecker.shared
+    private let checker = UpdateChecker.shared
 
     var body: some View {
         SettingsCard("Atualizações") {

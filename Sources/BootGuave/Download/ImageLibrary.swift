@@ -1,3 +1,4 @@
+import Observation
 import AppKit
 import Foundation
 
@@ -24,15 +25,16 @@ struct InstallImage: Identifiable, Hashable {
 /// Monta a lista de imagens e baixa as do catálogo. Compartilhado para o progresso continuar
 /// quando o usuário troca de página.
 @MainActor
-final class ImageLibrary: ObservableObject {
+@Observable
+final class ImageLibrary {
     static let shared = ImageLibrary()
 
-    @Published private(set) var images: [InstallImage] = []
+    private(set) var images: [InstallImage] = []
     /// Downloads em andamento: id da imagem → progresso (nil = preparando).
-    @Published private(set) var downloads: [String: Double?] = [:]
-    @Published var lastError: String?
+    private(set) var downloads: [String: Double?] = [:]
+    var lastError: String?
 
-    private var downloaders: [String: FileDownloader] = [:]
+    @ObservationIgnored private var downloaders: [String: FileDownloader] = [:]
     private let importedKey = "importedImages"
 
     private var importedPaths: [String] {
@@ -116,6 +118,7 @@ final class ImageLibrary: ObservableObject {
                     downloaders[image.id] = downloader
                     downloads[image.id] = 0
                     _ = try await downloader.download(from: remote)
+                    try await ISOChecksum.verify(destination, downloadedFrom: remote)
                 }
                 ActivityLog.shared.add(.imageDownloaded, remote.lastPathComponent)
             } catch {

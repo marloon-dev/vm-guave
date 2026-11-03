@@ -97,13 +97,20 @@ enum VMConfigurationBuilder {
 
     // MARK: Partes comuns
 
+    /// Disco gravável. O padrão (.full) faz F_FULLFSYNC a cada sincronização do convidado, o que
+    /// esvazia o cache do SSD e é muito lento no Apple Silicon. Com .fsync os dados sobrevivem a
+    /// uma queda do app ou da VM; só uma falta de energia sem bateria pode perder os últimos segundos.
+    private static func writableDisk(_ url: URL) throws -> VZDiskImageStorageDeviceAttachment {
+        try VZDiskImageStorageDeviceAttachment(url: url, readOnly: false, cachingMode: .automatic, synchronizationMode: .fsync)
+    }
+
     private static func storageDevices(_ config: VMConfig, _ bundle: VMBundle, includeInstaller: Bool) throws -> [VZStorageDeviceConfiguration] {
         var storage: [VZStorageDeviceConfiguration] = []
-        let disk = try VZDiskImageStorageDeviceAttachment(url: bundle.diskURL, readOnly: false)
+        let disk = try writableDisk(bundle.diskURL)
         storage.append(VZVirtioBlockDeviceConfiguration(attachment: disk))
 
         for extra in config.extraDisks {
-            let attachment = try VZDiskImageStorageDeviceAttachment(url: bundle.extraDiskURL(extra), readOnly: false)
+            let attachment = try writableDisk(bundle.extraDiskURL(extra))
             storage.append(VZVirtioBlockDeviceConfiguration(attachment: attachment))
         }
 
