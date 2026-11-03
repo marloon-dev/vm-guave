@@ -20,7 +20,7 @@ enum QEMUTools {
         qemuImg != nil && qemuSystem != nil && firmwareCode != nil && firmwareVarsTemplate != nil
     }
 
-    static let installHint = "Instale com: brew install qemu swtpm"
+    static let installHint = String(localized: "Instale com: brew install qemu swtpm")
 
     static func require(_ tool: URL?, _ name: String) throws -> URL {
         guard let tool else { throw QEMUError.notInstalled(name) }
@@ -83,13 +83,13 @@ enum QEMUError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .notInstalled(let name):
-            return "\(name) não encontrado. \(QEMUTools.installHint)"
+            return String(localized: "\(name) não encontrado. \(QEMUTools.installHint)")
         case .toolFailed(let tool, let message):
-            return "\(tool) falhou: \(message.isEmpty ? "erro desconhecido" : message)"
+            return String(localized: "\(tool) falhou: \(message.isEmpty ? "erro desconhecido" : message)")
         case .qmp(let message):
-            return "Controle do QEMU falhou: \(message)"
+            return String(localized: "Controle do QEMU falhou: \(message)")
         case .unsupported(let what):
-            return "\(what) não é suportado em VMs Windows (motor QEMU)."
+            return String(localized: "\(what) não é suportado em VMs Windows (motor QEMU).")
         }
     }
 }

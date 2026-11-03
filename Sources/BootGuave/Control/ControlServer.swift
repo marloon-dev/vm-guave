@@ -9,6 +9,8 @@ final class ControlServer: @unchecked Sendable {
 
     private var listenFD: Int32 = -1
     private var source: DispatchSourceRead?
+    /// Inode do socket criado por este processo: ao sair, só apaga o arquivo se ainda for o dele.
+    private var socketInode: ino_t?
     private let queue = DispatchQueue(label: "dev.marloon.bootguave.control")
 
     func start(handler: @escaping Handler) {
@@ -31,6 +33,7 @@ final class ControlServer: @unchecked Sendable {
             return
         }
         chmod(path, 0o600)
+        socketInode = Self.inode(at: path)
         listenFD = fd
 
         let source = DispatchSource.makeReadSource(fileDescriptor: fd, queue: queue)
@@ -47,7 +50,14 @@ final class ControlServer: @unchecked Sendable {
         source = nil
         if listenFD >= 0 { close(listenFD) }
         listenFD = -1
-        unlink(ControlSocket.path)
+        let path = ControlSocket.path
+        if let mine = socketInode, Self.inode(at: path) == mine { unlink(path) }
+        socketInode = nil
+    }
+
+    private static func inode(at path: String) -> ino_t? {
+        var info = stat()
+        return lstat(path, &info) == 0 ? info.st_ino : nil
     }
 
     private func serve(_ client: Int32, handler: @escaping Handler) {

@@ -21,9 +21,9 @@ struct VaultPasswordSheet: View {
 
     private var title: String {
         switch mode {
-        case .unlock: return "Desbloquear \"\(vmName)\""
-        case .encrypt: return "Criptografar \"\(vmName)\""
-        case .decrypt: return "Remover criptografia de \"\(vmName)\""
+        case .unlock: return String(localized: "Desbloquear \"\(vmName)\"")
+        case .encrypt: return String(localized: "Criptografar \"\(vmName)\"")
+        case .decrypt: return String(localized: "Remover criptografia de \"\(vmName)\"")
         }
     }
 

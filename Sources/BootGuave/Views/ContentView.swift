@@ -1,59 +1,38 @@
 import AppKit
 import SwiftUI
 
+/// Janela principal: barra lateral com as seções e a página escolhida.
 struct ContentView: View {
     @EnvironmentObject private var library: VMLibrary
-    @State private var selection: UUID?
-    @State private var showingWizard = false
-    @State private var showingDiskImport = false
+    @ObservedObject private var router = AppRouter.shared
 
     var body: some View {
         NavigationSplitView {
-            sidebar
-                .navigationSplitViewColumnWidth(min: 240, ideal: 270)
+            Sidebar()
+                .navigationSplitViewColumnWidth(min: 230, ideal: 260, max: 300)
         } detail: {
-            if let selection, let runner = library.runner(for: selection) {
-                VMDetailView(
-                    runner: runner,
-                    onDelete: {
-                        self.selection = nil
-                        library.delete(selection)
-                    },
-                    onClone: { self.selection = $0 }
-                )
-                .id(selection)
-            } else {
-                EmptyDetailView(hasVMs: !library.configs.isEmpty) { showingWizard = true }
-            }
+            page
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                // Sem a faixa cinza da barra de ferramentas: o fundo preto vai até o topo.
+                .toolbarBackground(.hidden, for: .windowToolbar)
         }
-        .tint(Brand.leaf)
-        // O logo já está na barra lateral; o título mostra a VM aberta.
-        .navigationTitle(selection.flatMap { library.config(for: $0)?.name } ?? "")
-        .toolbar {
-            ToolbarItemGroup {
-                importMenu
-                    .help("Importar uma VM ou um disco")
-                Button {
-                    showingWizard = true
-                } label: {
-                    Label("Nova VM", systemImage: "plus")
-                }
-                .help("Criar uma máquina virtual")
-            }
-        }
-        .sheet(isPresented: $showingWizard) {
-            NewVMWizard { config in
+        .tint(Brand.green)
+        .navigationTitle("")
+        .sheet(item: $router.wizardRequest) { request in
+            NewVMWizard(initialOS: request.os, initialISO: request.iso) { config in
                 library.create(config)
-                selection = config.id
+                router.open(vm: config.id)
                 if config.os == .macOS {
                     library.runner(for: config.id)?.installMacOS()
                 }
             }
         }
-        .sheet(isPresented: $showingDiskImport) {
+        .sheet(isPresented: $router.showingDiskImport) {
             ImportDiskSheet { source, os, name in
                 Task {
-                    if let id = await library.importDisk(from: source, os: os, name: name) { selection = id }
+                    if let id = await library.importDisk(from: source, os: os, name: name) {
+                        router.open(vm: id)
+                    }
                 }
             }
         }
@@ -83,156 +62,130 @@ struct ContentView: View {
         }
     }
 
-    // MARK: Barra lateral
-
-    private var sidebar: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 10) {
-                Image(nsImage: Self.logo)
-                    .resizable()
-                    .frame(width: 40, height: 40)
-                    .accessibilityHidden(true)
-                Text("VM Guave")
-                    .font(.title2.weight(.bold))
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 6)
-
-            Button {
-                showingWizard = true
-            } label: {
-                Label("Nova VM", systemImage: "plus")
-            }
-            .buttonStyle(GuaveButtonStyle(expands: true))
-            .keyboardShortcut("n", modifiers: .command)
-            .padding(.horizontal, 14)
-            .padding(.top, 16)
-
-            HStack {
-                Text("Máquinas virtuais")
-                    .font(.caption.weight(.semibold))
-                    .textCase(.uppercase)
-                    .kerning(0.6)
-                    .foregroundStyle(.secondary)
-                Spacer()
-                importMenu
-                    .labelStyle(.iconOnly)
-                    .menuStyle(.borderlessButton)
-                    .menuIndicator(.hidden)
-                    .fixedSize()
-                    .help("Importar uma VM ou um disco")
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 22)
-            .padding(.bottom, 4)
-
-            if library.configs.isEmpty {
-                VStack(spacing: 10) {
-                    SmallCubeIcon()
-                    Text("Nenhuma VM ainda")
-                        .font(.headline)
-                    Text("Crie sua primeira máquina virtual para começar.")
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                }
-                .padding(.horizontal, 24)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding(.bottom, 60)
+    @ViewBuilder
+    private var page: some View {
+        switch router.page {
+        case .overview: OverviewPage()
+        case .machines:
+            if let id = router.openVM, let runner = library.runner(for: id) {
+                VMDetailPage(runner: runner)
+                    .id(id)
             } else {
-                List(library.configs, selection: $selection) { config in
-                    if let runner = library.runner(for: config.id) {
-                        VMRow(runner: runner)
-                            .tag(config.id)
-                    }
-                }
-                .listStyle(.sidebar)
-                .scrollContentBackground(.hidden)
+                MachinesPage()
             }
-        }
-    }
-
-    /// Arte original do ícone; o applicationIconImage vem dentro do quadrado cinza do macOS.
-    private static let logo: NSImage = Bundle.main.url(forResource: "AppIcon", withExtension: "icns")
-        .flatMap(NSImage.init(contentsOf:)) ?? NSApp.applicationIconImage
-
-    private var importMenu: some View {
-        Menu {
-            Button("VM exportada do VM Guave (.bootguave)…") { importVM() }
-            Button("Disco de outro programa (qcow2, vmdk, vdi, vhdx)…") { showingDiskImport = true }
-        } label: {
-            Label("Importar", systemImage: "square.and.arrow.down")
-        }
-    }
-
-    private func importVM() {
-        guard let url = FilePicker.chooseVMToImport() else { return }
-        Task {
-            if let id = await library.importVM(from: url) { selection = id }
+        case .images: ImagesPage()
+        case .network: NetworkPage()
+        case .storage: StoragePage()
+        case .settings: SettingsPage()
         }
     }
 }
 
-private struct VMRow: View {
-    @ObservedObject var runner: VMRunner
+// MARK: - Barra lateral
 
-    private var config: VMConfig { runner.config }
+private struct Sidebar: View {
+    @ObservedObject private var router = AppRouter.shared
 
     var body: some View {
-        HStack(spacing: 10) {
-            OSTile(os: config.os, size: 30)
-            VStack(alignment: .leading, spacing: 1) {
-                Text(config.name)
-                    .font(.body.weight(.semibold))
-                    .lineLimit(1)
-                Text(runner.state == .stopped
-                     ? "\(config.os.displayName) · \(config.cpuCount) CPU · \(config.memoryGB) GB"
-                     : runner.state.label)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 12) {
+                Image(nsImage: AppLogo.image)
+                    .resizable()
+                    .frame(width: 46, height: 46)
+                    .accessibilityHidden(true)
+                Text(verbatim: "VM Guave")
+                    .font(.system(size: 26, weight: .bold))
             }
-            Spacer(minLength: 4)
-            if runner.state != .stopped {
-                Circle()
-                    .fill(runner.state.color)
-                    .frame(width: 8, height: 8)
-                    .accessibilityLabel(runner.state.label)
+            .padding(.horizontal, 18)
+            .padding(.top, 8)
+            .padding(.bottom, 26)
+
+            VStack(spacing: 6) {
+                ForEach(AppPage.allCases) { page in
+                    SidebarItem(page: page, selected: router.page == page) { router.go(page) }
+                }
             }
+            .padding(.horizontal, 12)
+
+            Spacer(minLength: 20)
+
+            Text("Ambientes que impulsionam ideias.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: 170, alignment: .leading)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 24)
         }
-        .padding(.vertical, 3)
+        .frame(maxHeight: .infinity, alignment: .top)
+        .background {
+            ZStack(alignment: .bottom) {
+                Surface.sidebar
+                SidebarLeaves()
+                    .frame(height: 240)
+            }
+            .ignoresSafeArea()
+        }
     }
 }
 
-/// Painel principal quando nenhuma VM está selecionada.
-private struct EmptyDetailView: View {
-    let hasVMs: Bool
+private struct SidebarItem: View {
+    let page: AppPage
+    let selected: Bool
+    let action: () -> Void
+    @State private var hovering = false
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 14) {
+                Image(systemName: page.symbol)
+                    .font(.system(size: 18, weight: selected ? .semibold : .regular))
+                    .frame(width: 26)
+                Text(page.title)
+                    .font(.title3.weight(selected ? .semibold : .regular))
+                Spacer(minLength: 0)
+            }
+            .foregroundStyle(selected ? Brand.ink : .primary)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 11)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(selected ? Brand.green : (hovering ? Color.primary.opacity(0.06) : .clear))
+            )
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering = $0 }
+    }
+}
+
+/// Arte original do ícone; o applicationIconImage vem dentro do quadrado cinza do macOS.
+enum AppLogo {
+    static let image: NSImage = Bundle.main.url(forResource: "AppIcon", withExtension: "icns")
+        .flatMap(NSImage.init(contentsOf:)) ?? NSApp.applicationIconImage
+}
+
+/// Ilustração quando ainda não há VMs (usada na lista de máquinas).
+struct EmptyMachinesView: View {
     let onCreate: () -> Void
 
     var body: some View {
-        ZStack {
-            LeafBackdrop()
-            VStack(spacing: 0) {
-                VMIllustration()
-                    .frame(width: 300, height: 250)
-                Text(hasVMs ? "Escolha uma VM na barra lateral" : "Suas máquinas virtuais, em um só lugar")
-                    .font(.system(size: 26, weight: .bold))
-                    .multilineTextAlignment(.center)
-                    .padding(.top, 24)
-                Text(hasVMs
-                     ? "Ou crie outra para testar um sistema novo."
-                     : "Crie uma VM para rodar Linux, Windows ou macOS ao lado do seu Mac.")
-                    .font(.title3)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.top, 10)
-                Button(hasVMs ? "Nova VM" : "Criar primeira VM", action: onCreate)
-                    .buttonStyle(GuaveButtonStyle(large: true))
-                    .padding(.top, 28)
-            }
-            .padding(40)
-            .frame(maxWidth: 620)
+        VStack(spacing: 0) {
+            VMIllustration()
+                .frame(width: 280, height: 230)
+            Text("Suas máquinas virtuais, em um só lugar")
+                .font(.system(size: 24, weight: .bold))
+                .multilineTextAlignment(.center)
+                .padding(.top, 20)
+            Text("Crie uma VM para rodar Linux, Windows ou macOS ao lado do seu Mac.")
+                .font(.title3)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.top, 8)
+            Button("Criar primeira VM", action: onCreate)
+                .buttonStyle(GuaveButtonStyle(large: true))
+                .padding(.top, 24)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(40)
+        .frame(maxWidth: .infinity)
     }
 }

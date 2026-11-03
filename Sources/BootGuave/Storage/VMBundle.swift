@@ -70,7 +70,7 @@ struct VMBundle {
         try FileManager.default.createDirectory(at: bundle.url, withIntermediateDirectories: true)
         if config.os.usesQEMU {
             let qemuImg = try QEMUTools.require(QEMUTools.qemuImg, "qemu-img")
-            let vars = try QEMUTools.require(QEMUTools.firmwareVarsTemplate, "Firmware EFI do QEMU")
+            let vars = try QEMUTools.require(QEMUTools.firmwareVarsTemplate, String(localized: "Firmware EFI do QEMU"))
             try runSync(qemuImg, ["create", "-q", "-f", "qcow2", bundle.qcow2DiskURL.path, "\(config.diskGB)G"])
             try FileManager.default.copyItem(at: vars, to: bundle.efiVariableStoreURL)
         } else {
@@ -205,7 +205,7 @@ enum FileCloner {
         let flags = copyfile_flags_t(COPYFILE_ALL | COPYFILE_RECURSIVE | COPYFILE_CLONE | COPYFILE_DATA_SPARSE)
         guard copyfile(source.path, destination.path, nil, flags) == 0 else {
             throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: [
-                NSLocalizedDescriptionKey: "Falha ao copiar para \(destination.path): \(String(cString: strerror(errno)))"
+                NSLocalizedDescriptionKey: String(localized: "Falha ao copiar para \(destination.path): \(String(cString: strerror(errno)))")
             ])
         }
     }
@@ -225,23 +225,23 @@ enum BootGuaveError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .diskCreationFailed:
-            return "Não foi possível criar a imagem de disco."
+            return String(localized: "Não foi possível criar a imagem de disco.")
         case .isoNotFound(let path):
-            return "ISO não encontrada: \(path)"
+            return String(localized: "ISO não encontrada: \(path)")
         case .isoIsDirectory(let path):
-            return "O caminho da ISO é uma pasta, não um arquivo .iso: \(path). Use \"Trocar ISO…\"."
+            return String(localized: "O caminho da ISO é uma pasta, não um arquivo .iso: \(path). Use \"Trocar ISO…\".")
         case .rosettaUnavailable:
-            return "O Rosetta para Linux não está instalado. Instale em Configurações da VM ou desative a opção."
+            return String(localized: "O Rosetta para Linux não está instalado. Instale em Configurações da VM ou desative a opção.")
         case .vmIsRunning:
-            return "Desligue ou suspenda a VM antes desta operação."
+            return String(localized: "Desligue ou suspenda a VM antes desta operação.")
         case .macOSNotInstalled:
-            return "O macOS ainda não foi instalado nesta VM. Use \"Instalar macOS\"."
+            return String(localized: "O macOS ainda não foi instalado nesta VM. Use \"Instalar macOS\".")
         case .macOSHardwareUnsupported:
-            return "Esta versão do macOS não é suportada como VM neste Mac. Tente um IPSW mais recente."
+            return String(localized: "Esta versão do macOS não é suportada como VM neste Mac. Tente um IPSW mais recente.")
         case .notAVirtualMachine(let path):
-            return "Não é uma VM do VM Guave (falta config.json): \(path)"
+            return String(localized: "Não é uma VM do VM Guave (falta config.json): \(path)")
         case .encryptedNotSupported(let what):
-            return "\(what) não está disponível para VMs criptografadas. Remova a criptografia antes."
+            return String(localized: "\(what) não está disponível para VMs criptografadas. Remova a criptografia antes.")
         }
     }
 }

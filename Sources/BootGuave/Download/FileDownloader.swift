@@ -74,9 +74,9 @@ enum DownloadError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .httpStatus(let code): return "O servidor respondeu com erro HTTP \(code)."
-        case .cancelled: return "Download cancelado."
-        case .notFound(let what): return "Não encontrei a versão mais recente de \(what) no servidor oficial."
+        case .httpStatus(let code): return String(localized: "O servidor respondeu com erro HTTP \(code).")
+        case .cancelled: return String(localized: "Download cancelado.")
+        case .notFound(let what): return String(localized: "Não encontrei a versão mais recente de \(what) no servidor oficial.")
         }
     }
 }

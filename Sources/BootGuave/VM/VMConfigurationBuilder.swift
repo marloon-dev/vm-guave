@@ -15,7 +15,7 @@ enum VMConfigurationBuilder {
             try configureMacOS(vz, config, bundle)
         case .windows:
             // Windows roda no QEMU (QEMUMachine), não no Virtualization.framework.
-            throw QEMUError.unsupported("O motor da Apple")
+            throw QEMUError.unsupported(String(localized: "O motor da Apple"))
         }
 
         vz.storageDevices = try storageDevices(config, bundle, includeInstaller: config.os == .linux)

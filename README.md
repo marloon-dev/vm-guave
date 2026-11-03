@@ -42,14 +42,66 @@ creme e verde-folha), nos modos claro e escuro:
 | Atalho | O que faz |
 |---|---|
 | ⌘N | Nova VM |
-| ⌃⌘F ou F11 | Entra e sai da tela cheia (também na janela da VM, com o teclado capturado) |
+| ⌘F | Entra e sai da tela cheia (também na janela da VM, com o teclado capturado) |
+| ⌘, | Configuração |
+| ⌘1 … ⌘6 | Seções da barra lateral |
 
-Em teclado de Mac, a F11 controla o sistema por padrão: use **fn + F11** ou ative "Usar as teclas
-F1, F2 etc. como teclas de função padrão" em Ajustes do Sistema → Teclado. Dentro da VM, ⌃⌘F e
-F11 ficam com o VM Guave e não chegam ao sistema convidado.
+Na tela cheia da VM, as barras de ferramentas e de menus se escondem e voltam quando o mouse
+encosta no topo da tela (macOS 15 ou mais novo).
+
+Dentro da VM, o ⌘F fica com o VM Guave e não chega ao sistema convidado (dá para desligar o atalho
+em Configuração).
 
 As cores e os componentes visuais (botão principal, etiqueta de estado, ilustrações) ficam em
 `Sources/BootGuave/Views/Theme.swift`.
+
+## Seções do app
+
+A barra lateral tem seis seções (atalhos ⌘1 a ⌘6, menu **Ir**):
+
+- **Visão Geral**: total de VMs, VMs ligadas, CPU e memória do Mac, gráfico de uso (última hora ou
+  24 h, medido pelo app enquanto está aberto) e atividade recente (iniciar, desligar, criar,
+  importar, snapshots…).
+- **Máquinas Virtuais**: tabela com busca, filtro por estado e ações; clicar numa VM abre o detalhe.
+- **Imagens**: distros do catálogo (download direto), Windows 11 ARM, macOS e as ISOs em Downloads
+  ou importadas; "Usar imagem" abre o assistente com a imagem escolhida.
+- **Rede**: a rede NAT padrão com diagrama, as redes próprias de cada VM e os IPs das máquinas.
+- **Armazenamento**: espaço do disco, quanto ocupam VMs e imagens, discos de cada VM e
+  "Criar volume" (disco adicional para uma VM desligada).
+- **Configuração** (⌘,): idioma, tema (escuro por padrão), autoinício das VMs, o que fazer ao
+  fechar com VMs ligadas, tela cheia, recursos padrão das novas VMs, atualizações e sobre. As
+  mudanças valem ao clicar em **Salvar alterações**.
+
+## Atualizações
+
+O app procura versões novas na última Release do GitHub ao abrir, a cada 10 minutos e sempre que
+volta para a frente. Quando encontra, mostra um alerta com as novidades e as opções **Atualizar
+agora**, **Depois** e **Pular esta versão**. "Atualizar agora" baixa o `.dmg`, confere o SHA-256
+publicado pelo GitHub, confere que o app de dentro é o VM Guave na versão anunciada e, ao reiniciar,
+troca o app no lugar (o antigo só é apagado depois que a troca dá certo). Se o app não estiver numa
+pasta em que o usuário possa gravar (por exemplo, aberto direto do `.dmg`), abre a página da versão.
+
+Para publicar uma versão (os apps abertos oferecem a atualização em seguida):
+
+```sh
+./scripts/release.sh 0.3.0 "## Novidades
+- Texto das novidades em Markdown"
+```
+
+O script muda a versão no `Info.plist`, faz o commit, gera o `.dmg`, cria a tag e a Release com o
+`.dmg`. A tag dispara o GitHub Actions, que anexa os instaladores de Windows e Linux à mesma Release.
+
+A interface está em português do Brasil e de Portugal, inglês, espanhol, francês, alemão, italiano,
+japonês, chinês simplificado, coreano e russo. Por padrão segue o idioma do macOS; num sistema em
+outro idioma, aparece em inglês. Para escolher um idioma só para o VM Guave, use Configuração → Geral.
+
+O texto-fonte é o pt-BR escrito no código (`Text("...")`, `String(localized: "...")`); as
+traduções ficam em `Resources/Localization/<idioma>.lproj/Localizable.strings`. Depois de mudar
+textos, rode:
+
+```sh
+./scripts/strings.py check   # lista o que falta traduzir em cada idioma
+```
 
 ## Requisitos
 
@@ -212,7 +264,9 @@ Sources/
 ├── bgctl/main.swift                  # CLI
 └── BootGuave/
     ├── BootGuaveApp.swift            # janelas + AppDelegate (sair suspendendo, abrir .bootguave)
-    ├── Control/                      # servidor do socket + comandos do bgctl
+    ├── Control/                      # servidor do socket, comandos do bgctl, cópia única do app
+    ├── Settings/                     # ajustes guardados (padrões, tema, idioma)
+    ├── Monitoring/                   # CPU/memória do Mac, atividade recente, atualizações
     ├── Download/                     # ISOs/IPSW com progresso; catálogo de distros
     ├── Network/                      # vmnet: redes próprias, IP fixo, portas
     ├── QEMU/                         # motor do Windows (QEMU + swtpm + QMP)
@@ -226,7 +280,11 @@ Sources/
     ├── VM/
     │   ├── VMConfigurationBuilder.swift  # VMConfig → VZVirtualMachineConfiguration (Linux e macOS)
     │   └── VMRunner.swift            # ciclo de vida, suspender, instalação do macOS
-    └── Views/                        # SwiftUI (Theme.swift: cores, botões e ilustrações)
+    └── Views/                        # SwiftUI (Theme.swift: cores e ilustrações)
+        ├── Design/Components.swift   # cartões, cabeçalhos, tabelas, filtros
+        ├── Shell/AppRouter.swift     # seções da barra lateral e navegação
+        └── Pages/                    # Visão Geral, Máquinas, Imagens, Rede, Armazenamento, Configuração
+Resources/Localization/               # traduções (<idioma>.lproj/Localizable.strings)
 ```
 
 As VMs ficam em `~/Library/Application Support/Boot Guave/VMs/<uuid>.bootguave/`:
@@ -287,7 +345,7 @@ Comparado com o que um virtualizador comercial completo oferece, separado pelo q
 
 **Versão 0.2.0 — feito**
 - [x] Novo visual com a identidade da goiaba (barra lateral, tela inicial ilustrada, detalhe da VM)
-- [x] Tela cheia por ⌃⌘F e F11
+- [x] Tela cheia por ⌘F
 
 **Fase 4 — possível**
 - [ ] Impedir duas cópias do app abertas ao mesmo tempo (hoje a segunda apaga o socket do `bgctl`)
@@ -302,6 +360,12 @@ Comparado com o que um virtualizador comercial completo oferece, separado pelo q
 - Bluetooth e webcam físicos do Mac na VM
 - Coherence (apps do convidado soltos no desktop do Mac) e aceleração 3D/DirectX
 - Toolbox de utilitários, gestão empresarial (SSO, SCIM, Jamf): produtos à parte
+
+## Marcas
+
+Os logotipos da página Imagens (Ubuntu, Debian, Fedora, Windows e Apple) vêm do
+[Simple Icons](https://simpleicons.org) e ficam em `Resources/Logos/`. Servem só para identificar
+cada sistema; as marcas pertencem aos donos, e o VM Guave não é afiliado a eles.
 
 ## Licença
 

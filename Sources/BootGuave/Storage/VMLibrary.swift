@@ -65,7 +65,14 @@ final class VMLibrary: ObservableObject {
     }
 
     func create(_ config: VMConfig) {
-        attempt { _ = try VMBundle.create(config) }
+        var config = config
+        // O padrão de rede dos Ajustes pode ser um modo vmnet, que precisa de sub-rede própria.
+        if config.networkMode != .nat && config.networkSubnet == nil {
+            config.networkSubnet = VMNetworkFactory.allocateSubnet(excluding: configs.compactMap(\.networkSubnet))
+        }
+        if attempt({ _ = try VMBundle.create(config) }) != nil {
+            ActivityLog.shared.add(.created, config.name)
+        }
         reload()
     }
 
@@ -105,13 +112,16 @@ final class VMLibrary: ObservableObject {
 
     func delete(_ id: UUID) {
         guard attempt({ try ensureNotActive(id) }) != nil else { return }
+        let name = config(for: id)?.name ?? ""
         runners[id] = nil
         let bundle = bundle(id)
         if bundle.isEncrypted && bundle.isUnlocked {
             VMVault.detachSync(bundle.mountURL)
         }
         VaultKeychain.delete(for: id)
-        attempt { try FileManager.default.removeItem(at: bundle.url) }
+        if attempt({ try FileManager.default.removeItem(at: bundle.url) }) != nil {
+            ActivityLog.shared.add(.deleted, name)
+        }
         reload()
     }
 
@@ -121,14 +131,14 @@ final class VMLibrary: ObservableObject {
         guard let source = config(for: id) else { return nil }
         let newID = attempt { () -> UUID in
             try ensureNotActive(id)
-            if source.encrypted { throw BootGuaveError.encryptedNotSupported("Clonar") }
+            if source.encrypted { throw BootGuaveError.encryptedNotSupported(String(localized: "Clonar")) }
             var copy = source
             copy.networkSubnet = nil
             if copy.networkMode != .nat {
                 copy.networkSubnet = VMNetworkFactory.allocateSubnet(excluding: configs.compactMap(\.networkSubnet))
             }
             copy.id = UUID()
-            copy.name = "\(source.name) (cópia)"
+            copy.name = String(localized: "\(source.name) (cópia)")
             copy.macAddress = VZMACAddress.randomLocallyAdministered().string
             copy.createdAt = Date()
 
@@ -151,6 +161,7 @@ final class VMLibrary: ObservableObject {
             return copy.id
         }
         reload()
+        if let newID { ActivityLog.shared.add(.cloned, config(for: newID)?.name ?? source.name) }
         return newID
     }
 
@@ -165,6 +176,7 @@ final class VMLibrary: ObservableObject {
             try ensureNotActive(id)
             try ensureUnlocked(id)
             _ = try bundle(id).createSnapshot(named: name)
+            ActivityLog.shared.add(.snapshotCreated, config(for: id)?.name ?? name)
         }
     }
 
@@ -183,6 +195,7 @@ final class VMLibrary: ObservableObject {
             restored.encrypted = current.encrypted
             restored.networkSubnet = current.networkSubnet
             try bundle.save(restored)
+            ActivityLog.shared.add(.snapshotRestored, current.name)
         }
         reload()
         runners[id]?.refreshState()
@@ -214,7 +227,7 @@ final class VMLibrary: ObservableObject {
         }
         let source = bundle(id).url
         let target = destination
-        busyMessage = "Exportando \(config.name)…"
+        busyMessage = String(localized: "Exportando \(config.name)…")
         defer { busyMessage = nil }
         do {
             // Cofre montado não pode ser copiado com segurança; bloqueia antes.
@@ -222,6 +235,7 @@ final class VMLibrary: ObservableObject {
                 try await VMVault.detach(bundle(id).mountURL)
             }
             try await Task.detached { try FileCloner.copyTree(source, to: target) }.value
+            ActivityLog.shared.add(.exported, config.name)
             return destination
         } catch {
             try? FileManager.default.removeItem(at: destination)
@@ -249,7 +263,7 @@ final class VMLibrary: ObservableObject {
             config.macAddress = VZMACAddress.randomLocallyAdministered().string
         }
         let destination = VMBundle(url: VMBundle.url(for: config.id))
-        busyMessage = "Importando \(config.name)…"
+        busyMessage = String(localized: "Importando \(config.name)…")
         defer { busyMessage = nil }
         do {
             try FileManager.default.createDirectory(at: VMBundle.libraryURL, withIntermediateDirectories: true)
@@ -269,6 +283,7 @@ final class VMLibrary: ObservableObject {
             return nil
         }
         reload()
+        ActivityLog.shared.add(.imported, config.name)
         return config.id
     }
 
@@ -289,7 +304,7 @@ final class VMLibrary: ObservableObject {
             createdAt: Date()
         )
         let bundle = bundle(config.id)
-        busyMessage = "Convertendo \(source.lastPathComponent)…"
+        busyMessage = String(localized: "Convertendo \(source.lastPathComponent)…")
         busyProgress = 0
         defer { busyMessage = nil; busyProgress = nil }
         do {
@@ -298,7 +313,7 @@ final class VMLibrary: ObservableObject {
             try FileManager.default.createDirectory(at: bundle.url, withIntermediateDirectories: true)
             let destination = os.usesQEMU ? bundle.qcow2DiskURL : bundle.diskURL
             if os.usesQEMU {
-                let vars = try QEMUTools.require(QEMUTools.firmwareVarsTemplate, "Firmware EFI do QEMU")
+                let vars = try QEMUTools.require(QEMUTools.firmwareVarsTemplate, String(localized: "Firmware EFI do QEMU"))
                 try FileManager.default.copyItem(at: vars, to: bundle.efiVariableStoreURL)
             }
             try await DiskImporter.convert(source, to: destination, format: os.usesQEMU ? "qcow2" : "raw") { value in
@@ -311,6 +326,7 @@ final class VMLibrary: ObservableObject {
             return nil
         }
         reload()
+        ActivityLog.shared.add(.imported, config.name)
         return config.id
     }
 
@@ -322,7 +338,7 @@ final class VMLibrary: ObservableObject {
         guard var config = config(for: id), attempt({ try ensureNotActive(id) }) != nil else { return }
         let bundle = bundle(id)
         guard !bundle.isEncrypted else { return }
-        busyMessage = "Criptografando \(config.name)…"
+        busyMessage = String(localized: "Criptografando \(config.name)…")
         defer { busyMessage = nil }
         do {
             try await VMVault.create(at: bundle.vaultURL, volumeName: "VM Guave \(config.name)", password: password)
@@ -359,7 +375,7 @@ final class VMLibrary: ObservableObject {
         guard var config = config(for: id), attempt({ try ensureNotActive(id) }) != nil else { return }
         let bundle = bundle(id)
         guard bundle.isEncrypted else { return }
-        busyMessage = "Removendo criptografia de \(config.name)…"
+        busyMessage = String(localized: "Removendo criptografia de \(config.name)…")
         defer { busyMessage = nil }
         let plain = bundle.url
         let vault = bundle.mountURL

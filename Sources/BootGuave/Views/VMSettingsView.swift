@@ -166,7 +166,7 @@ struct VMSettingsView: View {
     private var networkSection: some View {
         Section("Rede") {
             if config.os.usesQEMU {
-                LabeledContent("Modo", value: "NAT do QEMU")
+                LabeledContent("Modo", value: String(localized: "NAT do QEMU"))
             } else {
                 Picker("Modo", selection: $config.networkMode) {
                     ForEach(NetworkMode.allCases) { mode in
@@ -185,11 +185,11 @@ struct VMSettingsView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 case .shared:
-                    Text("Internet pelo Mac, IP fixo \(config.guestIPAddress ?? "(definido ao salvar)") e redirecionamento de portas.")
+                    Text("Internet pelo Mac, IP fixo \(config.guestIPAddress ?? String(localized: "(definido ao salvar)")) e redirecionamento de portas.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 case .hostOnly:
-                    Text("Sem internet. Só o Mac alcança a VM, pelo IP fixo \(config.guestIPAddress ?? "(definido ao salvar)"). Bom para laboratório isolado.")
+                    Text("Sem internet. Só o Mac alcança a VM, pelo IP fixo \(config.guestIPAddress ?? String(localized: "(definido ao salvar)")). Bom para laboratório isolado.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

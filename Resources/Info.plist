@@ -2,6 +2,23 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <!-- Sistema num idioma sem tradução cai no inglês; textos sem tradução aparecem em pt-BR. -->
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>pt-BR</string>
+        <string>pt-PT</string>
+        <string>en</string>
+        <string>es</string>
+        <string>fr</string>
+        <string>de</string>
+        <string>it</string>
+        <string>ja</string>
+        <string>zh-Hans</string>
+        <string>ko</string>
+        <string>ru</string>
+    </array>
     <key>CFBundleName</key>
     <string>VM Guave</string>
     <key>CFBundleDisplayName</key>

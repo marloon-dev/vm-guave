@@ -126,9 +126,9 @@ enum VaultError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .wrongPassword: return "Senha incorreta (ou o cofre já está em uso)."
-        case .locked: return "A VM está criptografada e bloqueada. Desbloqueie com a senha primeiro."
-        case .hdiutil(let message): return "Falha na imagem criptografada: \(message)"
+        case .wrongPassword: return String(localized: "Senha incorreta (ou o cofre já está em uso).")
+        case .locked: return String(localized: "A VM está criptografada e bloqueada. Desbloqueie com a senha primeiro.")
+        case .hdiutil(let message): return String(localized: "Falha na imagem criptografada: \(message)")
         }
     }
 }

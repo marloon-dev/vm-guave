@@ -34,6 +34,11 @@ cp "$BIN_DIR/BootGuave" "$APP/Contents/MacOS/BootGuave"
 cp "$BIN_DIR/bgctl" "$APP/Contents/MacOS/bgctl"
 cp "$ROOT/Resources/Info.plist" "$APP/Contents/Info.plist"
 cp "$ICNS" "$APP/Contents/Resources/AppIcon.icns"
+# Traduções (uma pasta .lproj por idioma); ./scripts/strings.py check aponta o que falta traduzir.
+cp -R "$ROOT/Resources/Localization/"*.lproj "$APP/Contents/Resources/"
+# Logotipos dos sistemas (SVG) da página Imagens.
+mkdir -p "$APP/Contents/Resources/Logos"
+cp "$ROOT/Resources/Logos/"*.svg "$APP/Contents/Resources/Logos/"
 
 # SIGN_IDENTITY="Developer ID Application: ..." para distribuir; padrão é ad-hoc (só roda sem alerta neste Mac).
 # O bgctl é assinado antes, sem a entitlement de virtualização (ele só fala com o app).

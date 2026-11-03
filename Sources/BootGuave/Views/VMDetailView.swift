@@ -110,10 +110,10 @@ struct VMDetailView: View {
                     LabeledContent("Discos adicionais", value: config.extraDisks.map { "\($0.sizeGB) GB" }.joined(separator: ", "))
                 }
                 if config.os == .linux {
-                    LabeledContent("Área de transferência", value: config.clipboardSharing ? "Compartilhada" : "Isolada")
-                    LabeledContent("Rosetta", value: config.rosettaEnabled ? "Ativado" : "Desativado")
+                    LabeledContent("Área de transferência", value: config.clipboardSharing ? String(localized: "Compartilhada") : String(localized: "Isolada"))
+                    LabeledContent("Rosetta", value: config.rosettaEnabled ? String(localized: "Ativado") : String(localized: "Desativado"))
                 }
-                LabeledContent("Iniciar ao abrir o app", value: config.autoStart ? "Sim" : "Não")
+                LabeledContent("Iniciar ao abrir o app", value: config.autoStart ? String(localized: "Sim") : String(localized: "Não"))
                 if !config.os.usesQEMU {
                     sharedFolderRows
                 }
@@ -121,9 +121,9 @@ struct VMDetailView: View {
 
             if config.os == .macOS {
                 Section("Instalação") {
-                    LabeledContent("macOS", value: config.macOSInstalled ? "Instalado" : "Não instalado")
+                    LabeledContent(String(localized: "macOS"), value: config.macOSInstalled ? String(localized: "Instalado") : String(localized: "Não instalado"))
                     LabeledContent("Imagem") {
-                        Text(config.installerIPSWPath.map { URL(fileURLWithPath: $0).lastPathComponent } ?? "Mais recente (download)")
+                        Text(config.installerIPSWPath.map { URL(fileURLWithPath: $0).lastPathComponent } ?? String(localized: "Mais recente (download)"))
                             .lineLimit(1)
                             .truncationMode(.middle)
                     }
@@ -158,7 +158,7 @@ struct VMDetailView: View {
     private var sharedFolderRows: some View {
                 LabeledContent("Pasta compartilhada") {
                     HStack {
-                        Text(config.sharedFolderPath ?? "Nenhuma")
+                        Text(config.sharedFolderPath ?? String(localized: "Nenhuma"))
                             .textSelection(.enabled)
                             .lineLimit(1)
                             .truncationMode(.head)
@@ -185,7 +185,7 @@ struct VMDetailView: View {
             Section("Instalação") {
                 LabeledContent("ISO") {
                     HStack {
-                        Text(config.installerISOPath.map { URL(fileURLWithPath: $0).lastPathComponent } ?? "Ejetada")
+                        Text(config.installerISOPath.map { URL(fileURLWithPath: $0).lastPathComponent } ?? String(localized: "Ejetada"))
                             .lineLimit(1)
                             .truncationMode(.middle)
                         Button(config.installerISOPath == nil ? "Inserir ISO…" : "Trocar ISO…") {
@@ -203,7 +203,7 @@ struct VMDetailView: View {
                 if config.os == .windows {
                     LabeledContent("Drivers virtio-win") {
                         HStack {
-                            Text(config.driversISOPath.map { URL(fileURLWithPath: $0).lastPathComponent } ?? "Nenhum")
+                            Text(config.driversISOPath.map { URL(fileURLWithPath: $0).lastPathComponent } ?? String(localized: "Nenhum"))
                             if config.driversISOPath != nil {
                                 Button("Ejetar") { edit { $0.driversISOPath = nil } }
                             }
@@ -323,7 +323,7 @@ struct VMDetailView: View {
         if !config.os.usesQEMU {
             Button { runner.suspend() } label: { Label("Suspender", systemImage: "moon.zzz") }
                 .disabled(!runner.canSuspend || (runner.state != .running && runner.state != .paused))
-                .help(runner.suspendUnavailableReason ?? "Salva o estado e desliga; ao iniciar, volta de onde parou")
+                .help(runner.suspendUnavailableReason ?? String(localized: "Salva o estado e desliga; ao iniciar, volta de onde parou"))
         }
         Button { runner.restart() } label: { Label("Reiniciar", systemImage: "arrow.clockwise") }
             .disabled(runner.state != .running && runner.state != .paused)
@@ -380,7 +380,7 @@ struct VMDetailView: View {
     }
 
     private func export() {
-        guard let folder = FilePicker.chooseFolder(title: "Escolha onde salvar a VM", prompt: "Exportar") else { return }
+        guard let folder = FilePicker.chooseFolder(title: String(localized: "Escolha onde salvar a VM"), prompt: String(localized: "Exportar")) else { return }
         Task {
             if let destination = await library.export(config.id, to: folder) {
                 NSWorkspace.shared.activateFileViewerSelecting([destination])
@@ -425,7 +425,7 @@ struct VMDetailView: View {
                 Text("Snapshots")
                 Spacer()
                 Button("Criar snapshot…") {
-                    snapshotName = "Snapshot \(snapshots.count + 1)"
+                    snapshotName = String(localized: "Snapshot \(snapshots.count + 1)")
                     namingSnapshot = true
                 }
                 .disabled(isActive || isLocked)
@@ -458,7 +458,7 @@ struct StatusBadge: View {
 
 /// Cartão pequeno com um dado da VM (CPU, memória…).
 private struct StatTile: View {
-    let title: String
+    let title: LocalizedStringKey
     let value: String
     let symbol: String
 

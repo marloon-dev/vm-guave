@@ -17,7 +17,7 @@ struct ImportDiskSheet: View {
                     HStack {
                         Text("Arquivo")
                         Spacer()
-                        Text(source?.lastPathComponent ?? "Nenhum")
+                        Text(source?.lastPathComponent ?? String(localized: "Nenhum"))
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                             .truncationMode(.middle)
@@ -65,7 +65,7 @@ struct ImportDiskSheet: View {
 
     private func choose() {
         let panel = NSOpenPanel()
-        panel.title = "Escolha o disco a importar"
+        panel.title = String(localized: "Escolha o disco a importar")
         panel.allowedContentTypes = DiskImporter.supportedExtensions.compactMap { UTType(filenameExtension: $0) } + [.data]
         panel.canChooseDirectories = false
         guard panel.runModal() == .OK, let url = panel.url else { return }

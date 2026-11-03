@@ -11,7 +11,7 @@ enum DiskImporter {
         let json = try await QEMUTools.run(qemuImg, ["info", "--output=json", source.path])
         guard let info = try JSONSerialization.jsonObject(with: Data(json.utf8)) as? [String: Any],
               let size = (info["virtual-size"] as? NSNumber)?.uint64Value else {
-            throw QEMUError.toolFailed("qemu-img", "não consegui ler o tamanho do disco")
+            throw QEMUError.toolFailed("qemu-img", String(localized: "não consegui ler o tamanho do disco"))
         }
         return size
     }

@@ -28,7 +28,7 @@ final class QEMUMachine {
 
     func start() async throws {
         let qemuBinary = try QEMUTools.require(QEMUTools.qemuSystem, "qemu-system-aarch64")
-        let firmware = try QEMUTools.require(QEMUTools.firmwareCode, "Firmware EFI do QEMU")
+        let firmware = try QEMUTools.require(QEMUTools.firmwareCode, String(localized: "Firmware EFI do QEMU"))
         try FileManager.default.createDirectory(at: runtimeDir, withIntermediateDirectories: true)
         try? FileManager.default.removeItem(at: qmpSocket)
         try? FileManager.default.removeItem(at: tpmSocket)
@@ -185,7 +185,7 @@ enum QMP {
         var addr = sockaddr_un()
         addr.sun_family = sa_family_t(AF_UNIX)
         let bytes = Array(path.utf8)
-        guard bytes.count < MemoryLayout.size(ofValue: addr.sun_path) else { throw QEMUError.qmp("caminho do socket longo demais") }
+        guard bytes.count < MemoryLayout.size(ofValue: addr.sun_path) else { throw QEMUError.qmp(String(localized: "caminho do socket longo demais")) }
         withUnsafeMutableBytes(of: &addr.sun_path) { buffer in
             buffer.copyBytes(from: bytes)
             buffer[bytes.count] = 0
@@ -200,7 +200,7 @@ enum QMP {
                 connect(fd, $0, socklen_t(MemoryLayout<sockaddr_un>.size))
             }
         }
-        guard connected == 0 else { throw QEMUError.qmp("QEMU não está respondendo") }
+        guard connected == 0 else { throw QEMUError.qmp(String(localized: "QEMU não está respondendo")) }
 
         var pending = Data()
         func readLine() throws -> [String: Any] {
@@ -215,7 +215,7 @@ enum QMP {
                     return json
                 }
                 let n = read(fd, &buffer, buffer.count)
-                guard n > 0 else { throw QEMUError.qmp("conexão encerrada") }
+                guard n > 0 else { throw QEMUError.qmp(String(localized: "conexão encerrada")) }
                 pending.append(buffer, count: n)
             }
         }

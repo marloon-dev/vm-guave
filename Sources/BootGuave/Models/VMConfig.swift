@@ -40,9 +40,9 @@ enum NetworkMode: String, Codable, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .nat: return "NAT (padrão)"
-        case .shared: return "Compartilhada com redirecionamento de portas"
-        case .hostOnly: return "Só com o Mac (sem internet)"
+        case .nat: return String(localized: "NAT (padrão)")
+        case .shared: return String(localized: "Compartilhada com redirecionamento de portas")
+        case .hostOnly: return String(localized: "Só com o Mac (sem internet)")
         }
     }
 }

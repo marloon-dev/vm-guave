@@ -10,7 +10,6 @@ struct VMWindowView: View {
     @State private var frameBeforePiP: NSRect?
     @State private var dropTargeted = false
     @State private var dropMessage: String?
-    @State private var keyMonitor: Any?
 
     var body: some View {
         Group {
@@ -65,12 +64,8 @@ struct VMWindowView: View {
             copyToSharedFolder(urls)
         } isTargeted: { dropTargeted = $0 }
         .background(WindowAccessor(window: $window))
-        .onAppear(perform: installFullScreenShortcut)
-        .onDisappear {
-            if let keyMonitor { NSEvent.removeMonitor(keyMonitor) }
-            keyMonitor = nil
-        }
         .navigationTitle(runner.config.name)
+        .modifier(HideToolbarInFullScreen())
         .toolbar {
             ToolbarItemGroup {
                 StatusBadge(state: runner.state)
@@ -82,7 +77,7 @@ struct VMWindowView: View {
                 }
                 Button { runner.suspend() } label: { Label("Suspender", systemImage: "moon.zzz") }
                     .disabled(!runner.canSuspend || (runner.state != .running && runner.state != .paused))
-                    .help(runner.suspendUnavailableReason ?? "Salva o estado e desliga")
+                    .help(runner.suspendUnavailableReason ?? String(localized: "Salva o estado e desliga"))
                 Button { togglePictureInPicture() } label: {
                     Label("Picture in Picture", systemImage: pictureInPicture ? "pip.exit" : "pip.enter")
                 }
@@ -91,29 +86,15 @@ struct VMWindowView: View {
                     Label("Tela cheia", systemImage: "arrow.up.left.and.arrow.down.right")
                 }
                 .disabled(pictureInPicture)
-                .help("Tela cheia (⌃⌘F ou F11)")
+                .help("Tela cheia (⌘F)")
             }
-        }
-    }
-
-    /// ⌃⌘F entra e sai da tela cheia (a F11 é tratada no AppDelegate, para todas as janelas). A tela da VM captura o teclado (capturesSystemKeys) e
-    /// mandaria o atalho ao convidado, então ele é pego antes, por um monitor local.
-    private func installFullScreenShortcut() {
-        guard keyMonitor == nil else { return }
-        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-            let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
-            guard let window, event.window === window, !pictureInPicture,
-                  flags == [.control, .command], event.charactersIgnoringModifiers?.lowercased() == "f"
-            else { return event }
-            window.toggleFullScreen(nil)
-            return nil
         }
     }
 
     /// Arrastar do Finder: copia para a pasta compartilhada, que o convidado já enxerga.
     private func copyToSharedFolder(_ urls: [URL]) -> Bool {
         guard let folderPath = runner.config.sharedFolderPath else {
-            showDropMessage("Configure uma pasta compartilhada na VM para arrastar arquivos.")
+            showDropMessage(String(localized: "Configure uma pasta compartilhada na VM para arrastar arquivos."))
             return false
         }
         let folder = URL(fileURLWithPath: folderPath)
@@ -127,11 +108,11 @@ struct VMWindowView: View {
                 failures.append(url.lastPathComponent)
             }
         }
-        let place = runner.config.os == .macOS ? "/Volumes/My Shared Files" : "a pasta compartilhada"
+        let place = runner.config.os == .macOS ? "/Volumes/My Shared Files" : String(localized: "a pasta compartilhada")
         if failures.isEmpty {
-            showDropMessage("\(copied) item(ns) copiado(s) para \(place)")
+            showDropMessage(String(localized: "\(copied) item(ns) copiado(s) para \(place)"))
         } else {
-            showDropMessage("Copiados \(copied); falharam: \(failures.joined(separator: ", "))")
+            showDropMessage(String(localized: "Copiados \(copied); falharam: \(failures.joined(separator: ", "))"))
         }
         return copied > 0
     }
@@ -192,6 +173,20 @@ private struct VMDisplayView: NSViewRepresentable {
     func updateNSView(_ view: VZVirtualMachineView, context: Context) {
         if view.virtualMachine !== virtualMachine {
             view.virtualMachine = virtualMachine
+        }
+    }
+}
+
+/// Tela cheia "total": só a imagem da VM. A barra de ferramentas e a de menus se escondem e
+/// reaparecem quando o mouse encosta no topo da tela.
+private struct HideToolbarInFullScreen: ViewModifier {
+    @AppStorage(AppSettings.Key.hideBarsInFullScreen) private var hideBars = true
+
+    func body(content: Content) -> some View {
+        if #available(macOS 15.0, *) {
+            content.windowToolbarFullScreenVisibility(hideBars ? .onHover : .visible)
+        } else {
+            content
         }
     }
 }

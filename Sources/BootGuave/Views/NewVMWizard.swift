@@ -3,15 +3,18 @@ import SwiftUI
 import Virtualization
 
 struct NewVMWizard: View {
+    /// Sistema e imagem já escolhidos (ex.: "Usar imagem" na página Imagens).
+    var initialOS: GuestOS? = nil
+    var initialISO: URL? = nil
     let onCreate: (VMConfig) -> Void
     @Environment(\.dismiss) private var dismiss
 
     @State private var name = "Ubuntu"
     @State private var nameEdited = false
     @State private var os: GuestOS = .linux
-    @State private var cpuCount = min(4, HostLimits.cpuRange.upperBound)
-    @State private var memoryGB = min(4, HostLimits.memoryGBRange.upperBound)
-    @State private var diskGB = 64
+    @State private var cpuCount = AppSettings.defaultCPUs
+    @State private var memoryGB = AppSettings.defaultMemoryGB
+    @State private var diskGB = AppSettings.defaultDiskGB
     @State private var isoURL: URL?
     @State private var ipswURL: URL?
     @State private var driversURL: URL?
@@ -70,7 +73,7 @@ struct NewVMWizard: View {
                         HStack {
                             Text("Pasta compartilhada")
                             Spacer()
-                            Text(sharedFolderURL?.path ?? "Nenhuma")
+                            Text(sharedFolderURL?.path ?? String(localized: "Nenhuma"))
                                 .foregroundStyle(.secondary)
                                 .lineLimit(1)
                                 .truncationMode(.head)
@@ -98,6 +101,7 @@ struct NewVMWizard: View {
             .padding()
         }
         .frame(width: 560, height: 660)
+        .onAppear(perform: applyInitialChoice)
         .onDisappear(perform: cancelDownload)
     }
 
@@ -105,7 +109,7 @@ struct NewVMWizard: View {
         HStack {
             Text(os == .windows ? "ISO do Windows 11 ARM" : "ISO de instalação")
             Spacer()
-            Text(isoURL?.lastPathComponent ?? "Nenhuma")
+            Text(isoURL?.lastPathComponent ?? String(localized: "Nenhuma"))
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
                 .truncationMode(.middle)
@@ -139,7 +143,7 @@ struct NewVMWizard: View {
             HStack {
                 Text("Imagem do macOS")
                 Spacer()
-                Text(ipswURL?.lastPathComponent ?? "Mais recente compatível (download)")
+                Text(ipswURL?.lastPathComponent ?? String(localized: "Mais recente compatível (download)"))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .truncationMode(.middle)
@@ -176,7 +180,7 @@ struct NewVMWizard: View {
             HStack {
                 Text("Drivers virtio-win (rede)")
                 Spacer()
-                Text(driversURL?.lastPathComponent ?? "Nenhum")
+                Text(driversURL?.lastPathComponent ?? String(localized: "Nenhum"))
                     .foregroundStyle(.secondary)
                 if driversURL == nil {
                     Button("Baixar (~880 MB)") { downloadDrivers() }
@@ -217,19 +221,47 @@ struct NewVMWizard: View {
         }
     }
 
+    private func applyInitialChoice() {
+        guard let initialOS else { return }
+        if initialOS != os {
+            os = initialOS // o onChange aplica os padrões do sistema e limpa a ISO
+        }
+        DispatchQueue.main.async {
+            guard let initialISO else { return }
+            if initialOS == .macOS {
+                ipswURL = initialISO
+            } else {
+                isoURL = initialISO
+                if !nameEdited { name = Self.suggestedName(for: initialISO, os: initialOS) }
+            }
+        }
+    }
+
+    /// "ubuntu-24.04.2-desktop-arm64.iso" → "Ubuntu"; o resto fica com o nome do sistema.
+    private static func suggestedName(for iso: URL, os: GuestOS) -> String {
+        let file = iso.lastPathComponent.lowercased()
+        for (needle, name) in [("ubuntu", "Ubuntu"), ("fedora", "Fedora"), ("debian", "Debian"), ("kali", "Kali"),
+                               ("alpine", "Alpine"), ("arch", "Arch Linux"), ("opensuse", "openSUSE"), ("rocky", "Rocky Linux")]
+        where file.contains(needle) {
+            return name
+        }
+        return os == .windows ? "Windows 11" : iso.deletingPathExtension().lastPathComponent
+    }
+
     private func applyDefaults(for os: GuestOS) {
+        // Parte dos padrões dos Ajustes; macOS e Windows 11 têm mínimos próprios.
+        memoryGB = AppSettings.defaultMemoryGB
+        diskGB = AppSettings.defaultDiskGB
         switch os {
         case .macOS:
-            memoryGB = min(8, HostLimits.memoryGBRange.upperBound)
-            diskGB = 80
+            memoryGB = min(max(memoryGB, 4), HostLimits.memoryGBRange.upperBound)
+            diskGB = max(diskGB, 64)
             if !nameEdited { name = "macOS" }
         case .linux:
-            memoryGB = min(4, HostLimits.memoryGBRange.upperBound)
-            diskGB = 64
             if !nameEdited { name = "Ubuntu" }
         case .windows:
-            memoryGB = min(8, HostLimits.memoryGBRange.upperBound)
-            diskGB = 80
+            memoryGB = min(max(memoryGB, 4), HostLimits.memoryGBRange.upperBound)
+            diskGB = max(diskGB, 64)
             if !nameEdited { name = "Windows 11" }
         }
         isoURL = nil
@@ -297,6 +329,8 @@ struct NewVMWizard: View {
         )
         config.installerIPSWPath = os == .macOS ? ipswURL?.path : nil
         config.driversISOPath = os == .windows ? driversURL?.path : nil
+        config.clipboardSharing = AppSettings.defaultClipboardSharing
+        if !os.usesQEMU { config.networkMode = AppSettings.defaultNetworkMode }
         onCreate(config)
         dismiss()
     }

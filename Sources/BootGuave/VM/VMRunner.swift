@@ -22,16 +22,16 @@ enum VMRunState: Equatable {
 
     var label: String {
         switch self {
-        case .stopped: return "Desligada"
-        case .suspended: return "Suspensa"
-        case .starting: return "Iniciando…"
-        case .running: return "Em execução"
-        case .paused: return "Pausada"
-        case .saving: return "Suspendendo…"
-        case .stopping: return "Desligando…"
-        case .downloading: return "Baixando macOS…"
-        case .installing: return "Instalando macOS…"
-        case .error: return "Erro"
+        case .stopped: return String(localized: "Desligada")
+        case .suspended: return String(localized: "Suspensa")
+        case .starting: return String(localized: "Iniciando…")
+        case .running: return String(localized: "Em execução")
+        case .paused: return String(localized: "Pausada")
+        case .saving: return String(localized: "Suspendendo…")
+        case .stopping: return String(localized: "Desligando…")
+        case .downloading: return String(localized: "Baixando macOS…")
+        case .installing: return String(localized: "Instalando macOS…")
+        case .error: return String(localized: "Erro")
         }
     }
 }
@@ -40,7 +40,9 @@ enum VMRunState: Equatable {
 @MainActor
 final class VMRunner: NSObject, ObservableObject, VZVirtualMachineDelegate {
     @Published var config: VMConfig
-    @Published private(set) var state: VMRunState
+    @Published private(set) var state: VMRunState {
+        didSet { logTransition(from: oldValue) }
+    }
     @Published private(set) var virtualMachine: VZVirtualMachine?
     /// Aviso não fatal (ex.: não deu para suspender, mas a VM segue rodando).
     @Published var notice: String?
@@ -51,6 +53,24 @@ final class VMRunner: NSObject, ObservableObject, VZVirtualMachineDelegate {
 
     /// Chamado quando o próprio runner grava a config (ex.: instalação do macOS).
     var onConfigSaved: (() -> Void)?
+
+    /// Registra na Atividade só as mudanças que interessam (pausar e retomar ficam de fora).
+    private func logTransition(from old: VMRunState) {
+        guard old != state else { return }
+        let name = config.name
+        switch state {
+        case .running where old == .starting:
+            ActivityLog.shared.add(.started, name)
+        case .stopped where old.isActive:
+            ActivityLog.shared.add(.stopped, name)
+        case .suspended where old == .saving:
+            ActivityLog.shared.add(.suspended, name)
+        case .error:
+            ActivityLog.shared.add(.failed, name)
+        default:
+            break
+        }
+    }
 
     private var bundle: VMBundle { VMBundle(url: VMBundle.url(for: config.id)) }
     private var downloader: FileDownloader?
@@ -171,7 +191,7 @@ final class VMRunner: NSObject, ObservableObject, VZVirtualMachineDelegate {
             // O estado salvo vale uma vez só: assim que a VM roda, o disco diverge dele.
             self.bundle.discardSavedState()
             if let error {
-                self.notice = "Não deu para retomar o estado salvo (\(error.localizedDescription)). Iniciando do zero."
+                self.notice = String(localized: "Não deu para retomar o estado salvo (\(error.localizedDescription)). Iniciando do zero.")
                 self.virtualMachine = nil
                 self.state = .stopped
                 self.start()
@@ -209,9 +229,9 @@ final class VMRunner: NSObject, ObservableObject, VZVirtualMachineDelegate {
     }
 
     var suspendUnavailableReason: String? {
-        if config.os.usesQEMU { return QEMUError.unsupported("Suspender").localizedDescription }
+        if config.os.usesQEMU { return QEMUError.unsupported(String(localized: "Suspender")).localizedDescription }
         if config.networkMode != .nat {
-            return "Suspender não é possível com rede personalizada: o macOS não salva o estado de VMs em redes vmnet. Use NAT para poder suspender."
+            return String(localized: "Suspender não é possível com rede personalizada: o macOS não salva o estado de VMs em redes vmnet. Use NAT para poder suspender.")
         }
         return nil
     }
@@ -231,7 +251,7 @@ final class VMRunner: NSObject, ObservableObject, VZVirtualMachineDelegate {
                 guard let self else { return }
                 if let error {
                     self.bundle.discardSavedState()
-                    self.notice = "Não foi possível suspender: \(error.localizedDescription)"
+                    self.notice = String(localized: "Não foi possível suspender: \(error.localizedDescription)")
                     // Volta ao estado de antes, em vez de deixar a VM congelada.
                     self.state = .paused
                     if !wasPaused { self.resume() }
@@ -245,7 +265,7 @@ final class VMRunner: NSObject, ObservableObject, VZVirtualMachineDelegate {
         } else {
             vm.pause { [weak self] result in
                 if case .failure(let error) = result {
-                    self?.notice = "Não foi possível suspender: \(error.localizedDescription)"
+                    self?.notice = String(localized: "Não foi possível suspender: \(error.localizedDescription)")
                     self?.state = .running
                     return
                 }

@@ -7,7 +7,7 @@ import UniformTypeIdentifiers
 enum FilePicker {
     static func chooseISO() -> URL? {
         let panel = NSOpenPanel()
-        panel.title = "Escolha a ISO de instalação (ARM64)"
+        panel.title = String(localized: "Escolha a ISO de instalação (ARM64)")
         panel.canChooseFiles = true
         panel.canChooseDirectories = false
         panel.allowsMultipleSelection = false
@@ -18,7 +18,7 @@ enum FilePicker {
 
     static func chooseIPSW() -> URL? {
         let panel = NSOpenPanel()
-        panel.title = "Escolha a imagem de restauração do macOS (.ipsw)"
+        panel.title = String(localized: "Escolha a imagem de restauração do macOS (.ipsw)")
         panel.canChooseFiles = true
         panel.canChooseDirectories = false
         panel.allowsMultipleSelection = false
@@ -27,7 +27,7 @@ enum FilePicker {
         return panel.runModal() == .OK ? panel.url : nil
     }
 
-    static func chooseFolder(title: String = "Escolha a pasta a compartilhar com a VM", prompt: String? = nil) -> URL? {
+    static func chooseFolder(title: String = String(localized: "Escolha a pasta a compartilhar com a VM"), prompt: String? = nil) -> URL? {
         let panel = NSOpenPanel()
         panel.title = title
         if let prompt { panel.prompt = prompt }
@@ -41,7 +41,7 @@ enum FilePicker {
     /// Um .bootguave é uma pasta (pacote); por isso aceita diretórios terminados em .bootguave.
     static func chooseVMToImport() -> URL? {
         let panel = NSOpenPanel()
-        panel.title = "Escolha uma VM exportada (.bootguave)"
+        panel.title = String(localized: "Escolha uma VM exportada (.bootguave)")
         panel.canChooseFiles = true
         panel.canChooseDirectories = true
         panel.treatsFilePackagesAsDirectories = false

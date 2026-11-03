@@ -1,6 +1,6 @@
 [package]
 name = "vm-guave"
-version = "0.2.0"
+version = "0.3.0"
 description = "VM Guave — gerenciador de máquinas virtuais (QEMU) para Windows e Linux"
 edition = "2021"
 license = "MIT"

@@ -66,7 +66,7 @@ enum VMNetworkFactory {
         let mode: vmnet_mode_t = config.networkMode == .hostOnly ? .VMNET_HOST_MODE : .VMNET_SHARED_MODE
         var status = vmnet_return_t.VMNET_SUCCESS
         guard let configuration = vmnet_network_configuration_create(mode, &status) else {
-            throw NetworkError.vmnet("criar configuração", status)
+            throw NetworkError.vmnet(String(localized: "criar configuração"), status)
         }
         defer { release(configuration) }
 
@@ -74,12 +74,12 @@ enum VMNetworkFactory {
         var mask = in_addr()
         inet_pton(AF_INET, subnet.split(separator: ".").prefix(3).joined(separator: ".") + ".1", &gateway)
         inet_pton(AF_INET, "255.255.255.0", &mask)
-        try check(vmnet_network_configuration_set_ipv4_subnet(configuration, &gateway, &mask), "definir sub-rede")
+        try check(vmnet_network_configuration_set_ipv4_subnet(configuration, &gateway, &mask), String(localized: "definir sub-rede"))
 
         var guest = in_addr()
         inet_pton(AF_INET, guestIP, &guest)
         if var ether = etherAddress(config.macAddress) {
-            try check(vmnet_network_configuration_add_dhcp_reservation(configuration, &ether, &guest), "reservar IP")
+            try check(vmnet_network_configuration_add_dhcp_reservation(configuration, &ether, &guest), String(localized: "reservar IP"))
         }
 
         for forward in config.portForwards {
@@ -88,12 +88,12 @@ enum VMNetworkFactory {
                 vmnet_network_configuration_add_port_forwarding_rule(
                     configuration, proto, sa_family_t(AF_INET), forward.guestPort, forward.hostPort, &guest
                 ),
-                "redirecionar porta \(forward.hostPort)"
+                String(localized: "redirecionar porta \(forward.hostPort)")
             )
         }
 
         guard let network = vmnet_network_create(configuration, &status) else {
-            throw NetworkError.vmnet("criar rede", status)
+            throw NetworkError.vmnet(String(localized: "criar rede"), status)
         }
         return network
     }
@@ -144,18 +144,18 @@ enum NetworkError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .missingSubnet:
-            return "A VM está num modo de rede vmnet sem sub-rede definida. Abra Configurações e salve de novo."
+            return String(localized: "A VM está num modo de rede vmnet sem sub-rede definida. Abra Configurações e salve de novo.")
         case .requiresMacOS26:
-            return "Redes personalizadas e redirecionamento de portas exigem macOS 26 ou mais recente. Use o modo NAT."
+            return String(localized: "Redes personalizadas e redirecionamento de portas exigem macOS 26 ou mais recente. Use o modo NAT.")
         case .vmnet(let step, let status):
             let detail: String
             switch status {
-            case .VMNET_INVALID_ACCESS, .VMNET_NOT_AUTHORIZED: detail = "acesso negado"
-            case .VMNET_SHARING_SERVICE_BUSY: detail = "serviço de rede ocupado ou porta já em uso no Mac"
-            case .VMNET_INVALID_ARGUMENT: detail = "argumento inválido"
-            default: detail = "código \(status.rawValue)"
+            case .VMNET_INVALID_ACCESS, .VMNET_NOT_AUTHORIZED: detail = String(localized: "acesso negado")
+            case .VMNET_SHARING_SERVICE_BUSY: detail = String(localized: "serviço de rede ocupado ou porta já em uso no Mac")
+            case .VMNET_INVALID_ARGUMENT: detail = String(localized: "argumento inválido")
+            default: detail = String(localized: "código \(status.rawValue)")
             }
-            return "Rede: falha ao \(step) (\(detail))."
+            return String(localized: "Rede: falha ao \(step) (\(detail)).")
         }
     }
 }
