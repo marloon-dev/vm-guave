@@ -7,8 +7,8 @@ Para **Windows e Linux** existe uma versão separada, em [`desktop/`](#windows-e
 feita em Tauri (Rust + HTML) sobre o QEMU.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="site/assets/screenshots/app-detail-dark-1600.png">
-  <img alt="Janela do VM Guave no Mac: barra lateral com a lista de VMs e o detalhe de uma VM Ubuntu em execução" src="site/assets/screenshots/app-detail-light-1600.png">
+  <source media="(prefers-color-scheme: dark)" srcset="site/assets/screenshots/app-overview-dark-1600.png">
+  <img alt="Janela do VM Guave no Mac: barra lateral com as seis seções e a Visão Geral com cartões, gráfico de uso e atividade recente" src="site/assets/screenshots/app-overview-light-1600.png">
 </picture>
 
 ## Download

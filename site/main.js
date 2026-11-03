@@ -112,4 +112,27 @@
     { rootMargin: "0px 0px -8% 0px", threshold: 0.08 },
   );
   items.forEach((el) => observer.observe(el));
+
+  // Abas da seção Novidades: clique ou setas do teclado trocam a captura.
+  const tabs = [...document.querySelectorAll('.tab-list [role="tab"]')];
+  function selectTab(tab, focus) {
+    tabs.forEach((t) => {
+      const on = t === tab;
+      t.setAttribute("aria-selected", on);
+      t.tabIndex = on ? 0 : -1;
+      document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
+    });
+    if (focus) tab.focus();
+  }
+  tabs.forEach((tab, i) => {
+    tab.addEventListener("click", () => selectTab(tab, false));
+    tab.addEventListener("keydown", (event) => {
+      const step = { ArrowRight: 1, ArrowLeft: -1 }[event.key];
+      if (event.key === "Home") selectTab(tabs[0], true);
+      else if (event.key === "End") selectTab(tabs[tabs.length - 1], true);
+      else if (step) selectTab(tabs[(i + step + tabs.length) % tabs.length], true);
+      else return;
+      event.preventDefault();
+    });
+  });
 })();

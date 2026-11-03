@@ -58,7 +58,7 @@
       <nav aria-label="Principal">
         <ul class="nav-links">
           <li><a href="#recursos">Recursos</a></li>
-          <li><a href="#visual">Novo visual</a></li>
+          <li><a href="#novidades">Novidades</a></li>
           <li><a href="#plataformas">Plataformas</a></li>
           <li><a href="#perguntas">Perguntas</a></li>
           <li><a href="https://github.com/marloon-dev/vm-guave" class="nav-github">
@@ -94,13 +94,13 @@
           <figure class="shot">
             <picture>
               <source media="(prefers-color-scheme: dark)"
-                      srcset="assets/screenshots/app-detail-dark-800.png 800w, assets/screenshots/app-detail-dark-1200.png 1200w, assets/screenshots/app-detail-dark-1600.png 1600w, assets/screenshots/app-detail-dark-2360.png 2360w"
+                      srcset="assets/screenshots/app-overview-dark-800.png 800w, assets/screenshots/app-overview-dark-1200.png 1200w, assets/screenshots/app-overview-dark-1600.png 1600w, assets/screenshots/app-overview-dark-2560.png 2560w"
                       sizes="(min-width: 1180px) 1080px, calc(100vw - 40px)">
-              <img src="assets/screenshots/app-detail-light-1600.png"
-                   srcset="assets/screenshots/app-detail-light-800.png 800w, assets/screenshots/app-detail-light-1200.png 1200w, assets/screenshots/app-detail-light-1600.png 1600w, assets/screenshots/app-detail-light-2360.png 2360w"
+              <img src="assets/screenshots/app-overview-light-1600.png"
+                   srcset="assets/screenshots/app-overview-light-800.png 800w, assets/screenshots/app-overview-light-1200.png 1200w, assets/screenshots/app-overview-light-1600.png 1600w, assets/screenshots/app-overview-light-2560.png 2560w"
                    sizes="(min-width: 1180px) 1080px, calc(100vw - 40px)"
-                   width="1600" height="976" fetchpriority="high" decoding="async"
-                   alt="Janela do VM Guave: barra lateral com três VMs e o detalhe de uma VM Ubuntu em execução, com cartões de CPU, memória, disco e snapshots">
+                   width="1600" height="1000" fetchpriority="high" decoding="async"
+                   alt="Janela do VM Guave na Visão Geral: barra lateral com as seis seções, cartões de máquinas virtuais, VMs em execução, CPU e memória, gráfico de uso de recursos e atividade recente">
             </picture>
           </figure>
           <img class="hero-fruit" src="assets/icon.png" alt="" width="180" height="180">
@@ -177,36 +177,162 @@
             <p>Baixe Ubuntu, Fedora ou Debian direto do app, sempre na versão mais recente.</p>
             <span class="tag">Mac</span>
           </li>
+          <li class="feature reveal">
+            <span class="f-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg></span>
+            <h3>Painel do Mac</h3>
+            <p>Veja CPU, memória e VMs ligadas num relance, com gráfico das últimas 24 horas.</p>
+            <span class="tag">Mac</span>
+          </li>
+          <li class="feature reveal">
+            <span class="f-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2.5"/></svg></span>
+            <h3>Biblioteca de imagens</h3>
+            <p>Ubuntu, Fedora, Debian, Windows e macOS prontos para baixar e criar a VM em um clique.</p>
+            <span class="tag">Mac</span>
+          </li>
+          <li class="feature reveal">
+            <span class="f-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.6 3.6 5.4 3.6 8.5s-1.1 5.9-3.6 8.5c-2.5-2.6-3.6-5.4-3.6-8.5S9.5 6.1 12 3.5Z"/></svg></span>
+            <h3>Em 11 idiomas</h3>
+            <p>Português, inglês, espanhol, francês, alemão, italiano, japonês, chinês, coreano e russo.</p>
+            <span class="tag">Mac</span>
+          </li>
+          <li class="feature reveal">
+            <span class="f-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v4.5h-4.5"/><path d="M12 8v4l2.5 2"/></svg></span>
+            <h3>Atualização automática</h3>
+            <p>O app avisa quando sai versão nova e se atualiza sozinho, sem precisar baixar nada.</p>
+            <span class="tag">Mac</span>
+          </li>
         </ul>
       </div>
     </section>
 
-    <!-- NOVO VISUAL -->
-    <section class="section section-alt" id="visual" aria-labelledby="visual-titulo">
-      <div class="container showcase">
-        <div class="showcase-copy reveal">
-          <p class="eyebrow">Novo na versão 0.2.0</p>
-          <h2 id="visual-titulo">Um visual feito para o dia a dia</h2>
-          <p>O VM Guave ganhou a identidade da goiaba, nos modos claro e escuro. Tudo o que importa fica à vista, sem menus escondidos.</p>
-          <ul class="checklist">
-            <li><strong>Comece em segundos.</strong> Sem nenhuma VM, a tela inicial leva direto ao botão <em>Criar primeira VM</em>.</li>
-            <li><strong>Estado ao vivo.</strong> Cada VM mostra na barra lateral se está ligada, pausada ou suspensa.</li>
-            <li><strong>Recursos de relance.</strong> CPUs, memória, disco e snapshots em cartões no topo de cada VM.</li>
-            <li><strong>Atalhos.</strong> <kbd>⌘</kbd><kbd>N</kbd> cria uma VM; <kbd>⌘</kbd><kbd>F</kbd> põe a VM em tela cheia.</li>
-          </ul>
+    <!-- NOVIDADES DA 0.3.0 -->
+    <section class="section section-alt" id="novidades" aria-labelledby="novidades-titulo">
+      <div class="container">
+        <header class="section-head reveal">
+          <p class="eyebrow">Novo na versão 0.3.0</p>
+          <h2 id="novidades-titulo">Seis seções, tudo à vista</h2>
+          <p>O VM Guave para Mac ganhou uma barra lateral com tudo organizado, no visual da goiaba, nos modos escuro e claro.</p>
+        </header>
+
+        <div class="tabs reveal">
+          <div class="tab-list" role="tablist" aria-label="Seções do app">
+            <button class="tab" role="tab" id="tab-overview" aria-controls="painel-overview" aria-selected="true">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11 12 4l8 7M6 10v9h12v-9"/></svg><span>Visão Geral</span>
+            </button>
+            <button class="tab" role="tab" id="tab-machines" aria-controls="painel-machines" aria-selected="false" tabindex="-1">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 20 7.5v9L12 21 4 16.5v-9Z"/><path d="M4 7.5 12 12l8-4.5M12 12v9"/></svg><span>Máquinas Virtuais</span>
+            </button>
+            <button class="tab" role="tab" id="tab-images" aria-controls="painel-images" aria-selected="false" tabindex="-1">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2.5"/></svg><span>Imagens</span>
+            </button>
+            <button class="tab" role="tab" id="tab-network" aria-controls="painel-network" aria-selected="false" tabindex="-1">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.5" r="2.5"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/><path d="M12 8v4M5.5 16v-2h13v2"/></svg><span>Rede</span>
+            </button>
+            <button class="tab" role="tab" id="tab-storage" aria-controls="painel-storage" aria-selected="false" tabindex="-1">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="6" rx="7.5" ry="2.8"/><path d="M4.5 6v12c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8V6M4.5 12c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8"/></svg><span>Armazenamento</span>
+            </button>
+            <button class="tab" role="tab" id="tab-settings" aria-controls="painel-settings" aria-selected="false" tabindex="-1">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M4.4 4.4l2.1 2.1M17.5 17.5l2.1 2.1M2.5 12h3M18.5 12h3M4.4 19.6l2.1-2.1M17.5 6.5l2.1-2.1"/></svg><span>Configuração</span>
+            </button>
+          </div>
+          <div class="tab-panel" role="tabpanel" id="painel-overview" aria-labelledby="tab-overview">
+            <figure class="shot">
+            <picture>
+              <source media="(prefers-color-scheme: dark)"
+                      srcset="assets/screenshots/app-overview-dark-800.png 800w, assets/screenshots/app-overview-dark-1200.png 1200w, assets/screenshots/app-overview-dark-1600.png 1600w, assets/screenshots/app-overview-dark-2560.png 2560w"
+                      sizes="(min-width: 1180px) 1080px, calc(100vw - 40px)">
+              <img src="assets/screenshots/app-overview-light-1600.png"
+                   srcset="assets/screenshots/app-overview-light-800.png 800w, assets/screenshots/app-overview-light-1200.png 1200w, assets/screenshots/app-overview-light-1600.png 1600w, assets/screenshots/app-overview-light-2560.png 2560w"
+                   sizes="(min-width: 1180px) 1080px, calc(100vw - 40px)"
+                   width="1600" height="1000" loading="lazy" decoding="async"
+                   alt="Visão Geral do VM Guave: cartões de máquinas virtuais, VMs em execução, CPU e memória, gráfico de uso de recursos e atividade recente">
+            </picture>
+            </figure>
+            <p class="tab-caption"><strong>Visão Geral.</strong> Máquinas, VMs em execução, CPU e memória do Mac num relance, com gráfico da última hora ou das últimas 24 horas e a atividade recente.</p>
+          </div>
+          <div class="tab-panel" role="tabpanel" id="painel-machines" aria-labelledby="tab-machines" hidden>
+            <figure class="shot">
+            <picture>
+              <source media="(prefers-color-scheme: dark)"
+                      srcset="assets/screenshots/app-machines-dark-800.png 800w, assets/screenshots/app-machines-dark-1200.png 1200w, assets/screenshots/app-machines-dark-1600.png 1600w, assets/screenshots/app-machines-dark-2560.png 2560w"
+                      sizes="(min-width: 1180px) 1080px, calc(100vw - 40px)">
+              <img src="assets/screenshots/app-machines-light-1600.png"
+                   srcset="assets/screenshots/app-machines-light-800.png 800w, assets/screenshots/app-machines-light-1200.png 1200w, assets/screenshots/app-machines-light-1600.png 1600w, assets/screenshots/app-machines-light-2560.png 2560w"
+                   sizes="(min-width: 1180px) 1080px, calc(100vw - 40px)"
+                   width="1600" height="1000" loading="lazy" decoding="async"
+                   alt="Página Máquinas Virtuais: busca, filtro por status e tabela com nome, status, sistema, CPU e memória, armazenamento e ações">
+            </picture>
+            </figure>
+            <p class="tab-caption"><strong>Máquinas Virtuais.</strong> Todas as VMs numa tabela, com busca, filtro por estado e um menu de ações em cada linha. Um clique abre os detalhes da VM.</p>
+          </div>
+          <div class="tab-panel" role="tabpanel" id="painel-images" aria-labelledby="tab-images" hidden>
+            <figure class="shot">
+            <picture>
+              <source media="(prefers-color-scheme: dark)"
+                      srcset="assets/screenshots/app-images-dark-800.png 800w, assets/screenshots/app-images-dark-1200.png 1200w, assets/screenshots/app-images-dark-1600.png 1600w, assets/screenshots/app-images-dark-2560.png 2560w"
+                      sizes="(min-width: 1180px) 1080px, calc(100vw - 40px)">
+              <img src="assets/screenshots/app-images-light-1600.png"
+                   srcset="assets/screenshots/app-images-light-800.png 800w, assets/screenshots/app-images-light-1200.png 1200w, assets/screenshots/app-images-light-1600.png 1600w, assets/screenshots/app-images-light-2560.png 2560w"
+                   sizes="(min-width: 1180px) 1080px, calc(100vw - 40px)"
+                   width="1600" height="1000" loading="lazy" decoding="async"
+                   alt="Página Imagens: cartões de Ubuntu, Fedora, Debian, Windows 11 e macOS com logotipos oficiais e os botões Baixar e Usar imagem">
+            </picture>
+            </figure>
+            <p class="tab-caption"><strong>Imagens.</strong> Ubuntu, Fedora, Debian, Windows 11 e macOS com os logotipos oficiais. Baixe direto pelo app e clique em Usar imagem para criar a VM.</p>
+          </div>
+          <div class="tab-panel" role="tabpanel" id="painel-network" aria-labelledby="tab-network" hidden>
+            <figure class="shot">
+            <picture>
+              <source media="(prefers-color-scheme: dark)"
+                      srcset="assets/screenshots/app-network-dark-800.png 800w, assets/screenshots/app-network-dark-1200.png 1200w, assets/screenshots/app-network-dark-1600.png 1600w, assets/screenshots/app-network-dark-2560.png 2560w"
+                      sizes="(min-width: 1180px) 1080px, calc(100vw - 40px)">
+              <img src="assets/screenshots/app-network-light-1600.png"
+                   srcset="assets/screenshots/app-network-light-800.png 800w, assets/screenshots/app-network-light-1200.png 1200w, assets/screenshots/app-network-light-1600.png 1600w, assets/screenshots/app-network-light-2560.png 2560w"
+                   sizes="(min-width: 1180px) 1080px, calc(100vw - 40px)"
+                   width="1600" height="1000" loading="lazy" decoding="async"
+                   alt="Página Rede: rede padrão com sub-rede, gateway e DHCP, diagrama ligando o roteador às VMs e a lista de máquinas conectadas com endereço IP">
+            </picture>
+            </figure>
+            <p class="tab-caption"><strong>Rede.</strong> Um diagrama mostra a rede padrão e as redes próprias de cada VM, com sub-rede, gateway e o IP de cada máquina.</p>
+          </div>
+          <div class="tab-panel" role="tabpanel" id="painel-storage" aria-labelledby="tab-storage" hidden>
+            <figure class="shot">
+            <picture>
+              <source media="(prefers-color-scheme: dark)"
+                      srcset="assets/screenshots/app-storage-dark-800.png 800w, assets/screenshots/app-storage-dark-1200.png 1200w, assets/screenshots/app-storage-dark-1600.png 1600w, assets/screenshots/app-storage-dark-2560.png 2560w"
+                      sizes="(min-width: 1180px) 1080px, calc(100vw - 40px)">
+              <img src="assets/screenshots/app-storage-light-1600.png"
+                   srcset="assets/screenshots/app-storage-light-800.png 800w, assets/screenshots/app-storage-light-1200.png 1200w, assets/screenshots/app-storage-light-1600.png 1600w, assets/screenshots/app-storage-light-2560.png 2560w"
+                   sizes="(min-width: 1180px) 1080px, calc(100vw - 40px)"
+                   width="1600" height="1000" loading="lazy" decoding="async"
+                   alt="Página Armazenamento: espaço total, em uso e disponível, barra dividida entre discos de VMs, imagens e outros arquivos e a tabela de volumes">
+            </picture>
+            </figure>
+            <p class="tab-caption"><strong>Armazenamento.</strong> Quanto as VMs e as imagens ocupam de verdade no disco, os discos de cada VM e a opção de criar discos extras.</p>
+          </div>
+          <div class="tab-panel" role="tabpanel" id="painel-settings" aria-labelledby="tab-settings" hidden>
+            <figure class="shot">
+            <picture>
+              <source media="(prefers-color-scheme: dark)"
+                      srcset="assets/screenshots/app-settings-dark-800.png 800w, assets/screenshots/app-settings-dark-1200.png 1200w, assets/screenshots/app-settings-dark-1600.png 1600w, assets/screenshots/app-settings-dark-2560.png 2560w"
+                      sizes="(min-width: 1180px) 1080px, calc(100vw - 40px)">
+              <img src="assets/screenshots/app-settings-light-1600.png"
+                   srcset="assets/screenshots/app-settings-light-800.png 800w, assets/screenshots/app-settings-light-1200.png 1200w, assets/screenshots/app-settings-light-1600.png 1600w, assets/screenshots/app-settings-light-2560.png 2560w"
+                   sizes="(min-width: 1180px) 1080px, calc(100vw - 40px)"
+                   width="1600" height="1000" loading="lazy" decoding="async"
+                   alt="Página Configuração: preferências gerais com idioma e tema, ação ao fechar com VMs ligadas e opções de tela cheia">
+            </picture>
+            </figure>
+            <p class="tab-caption"><strong>Configuração.</strong> Idioma, tema claro ou escuro, recursos padrão das novas VMs, o que fazer ao fechar com VMs ligadas e atualizações.</p>
+          </div>
         </div>
-        <figure class="shot reveal">
-          <picture>
-            <source media="(prefers-color-scheme: dark)"
-                    srcset="assets/screenshots/app-empty-dark-800.png 800w, assets/screenshots/app-empty-dark-1200.png 1200w, assets/screenshots/app-empty-dark-1600.png 1600w, assets/screenshots/app-empty-dark-2360.png 2360w"
-                    sizes="(min-width: 1180px) 620px, (min-width: 881px) 54vw, calc(100vw - 40px)">
-            <img src="assets/screenshots/app-empty-light-1600.png"
-                 srcset="assets/screenshots/app-empty-light-800.png 800w, assets/screenshots/app-empty-light-1200.png 1200w, assets/screenshots/app-empty-light-1600.png 1600w, assets/screenshots/app-empty-light-2360.png 2360w"
-                 sizes="(min-width: 1180px) 620px, (min-width: 881px) 54vw, calc(100vw - 40px)"
-                 width="1600" height="1003" loading="lazy" decoding="async"
-                 alt="Tela inicial do VM Guave sem VMs: ilustração de um cubo sobre uma base com folhas e o botão Criar primeira VM">
-          </picture>
-        </figure>
+
+        <ul class="checklist news reveal">
+          <li><strong>Em 11 idiomas.</strong> Português do Brasil e de Portugal, inglês, espanhol, francês, alemão, italiano, japonês, chinês, coreano e russo.</li>
+          <li><strong>Atualiza sozinho.</strong> O app avisa quando sai versão nova e se atualiza com um clique, conferindo o arquivo antes de instalar.</li>
+          <li><strong>Atalhos.</strong> <kbd>⌘</kbd><kbd>N</kbd> cria uma VM, <kbd>⌘</kbd><kbd>F</kbd> põe a VM em tela cheia sem barras e <kbd>⌘</kbd><kbd>1</kbd>…<kbd>6</kbd> trocam de seção.</li>
+          <li><strong>Uma cópia por vez.</strong> Abrir o app de novo só traz para a frente a janela que já está aberta.</li>
+        </ul>
       </div>
     </section>
 
@@ -262,6 +388,9 @@
               <tr><th scope="row">Suspender e retomar</th><td class="yes">Sim</td><td class="no">Não</td></tr>
               <tr><th scope="row">Criptografia, clonar, exportar</th><td class="yes">Sim</td><td class="no">Não</td></tr>
               <tr><th scope="row">Pasta compartilhada e área de transferência</th><td class="yes">Sim</td><td class="no">Não</td></tr>
+              <tr><th scope="row">Painel com Visão Geral, Imagens, Rede e Armazenamento</th><td class="yes">Sim</td><td class="no">Não</td></tr>
+              <tr><th scope="row">Idiomas da interface</th><td class="yes">11 idiomas</td><td>Português</td></tr>
+              <tr><th scope="row">Atualização automática</th><td class="yes">Sim</td><td class="no">Não</td></tr>
               <tr><th scope="row">Aceleração</th><td>Apple Virtualization</td><td>KVM (Linux) · WHPX (Windows)</td></tr>
             </tbody>
           </table>
@@ -368,6 +497,14 @@
           <details>
             <summary>Quanto de memória e disco eu preciso?</summary>
             <p>Para um Linux com interface gráfica, 4 GB de memória e 32 GB de disco já funcionam bem. Para o Windows, recomendamos 8 GB e 64 GB. O disco da VM cresce conforme o uso, então não ocupa o tamanho todo de uma vez.</p>
+          </details>
+          <details>
+            <summary>Como atualizo o VM Guave?</summary>
+            <p>No Mac, a partir da versão 0.3.0, o app avisa sozinho quando sai uma versão nova: clique em <strong>Atualizar agora</strong> e ele baixa, confere e reinicia já atualizado. Quem está na 0.2.0 instala a 0.3.0 uma vez pelo botão de download desta página. No Windows e no Linux, baixe o instalador novo e instale por cima.</p>
+          </details>
+          <details>
+            <summary>O app está disponível em outros idiomas?</summary>
+            <p>Sim. No Mac, o VM Guave segue o idioma do sistema entre 11 opções, ou você escolhe outro em <strong>Configuração → Geral</strong>. A versão para Windows e Linux está em português.</p>
           </details>
           <details>
             <summary>Encontrei um problema. Como aviso?</summary>
