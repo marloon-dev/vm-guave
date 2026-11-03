@@ -120,6 +120,7 @@ struct NewVMWizard: View {
                     }
                 }
                 .fixedSize()
+                .guaveHover(.text)
                 .disabled(downloadLabel != nil)
             }
             Button("Escolher…") {
@@ -177,6 +178,7 @@ struct NewVMWizard: View {
                 NSWorkspace.shared.open(WindowsDownloads.windows11ARMPage)
             }
             .buttonStyle(.link)
+            .guaveHover(.text)
             HStack {
                 Text("Drivers virtio-win (rede)")
                 Spacer()
@@ -189,7 +191,7 @@ struct NewVMWizard: View {
                     Button("Remover") { driversURL = nil }
                 }
             }
-            Text("A tela do Windows abre numa janela própria do QEMU. Ao iniciar a instalação, aperte uma tecla quando aparecer \"Press any key to boot from CD\". A rede só funciona depois de instalar os drivers do CD virtio-win (pasta NetKVM/w11/ARM64).")
+            Text("A tela do Windows aparece na janela da VM, como nas outras VMs. Ao iniciar a instalação, aperte uma tecla quando aparecer \"Press any key to boot from CD\". A rede só funciona depois de instalar os drivers do CD virtio-win (pasta NetKVM/w11/ARM64).")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

@@ -54,7 +54,7 @@ struct GuaveButtonStyle: ButtonStyle {
             )
             .opacity(isEnabled ? 1 : 0.45)
             .contentShape(Rectangle())
-            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+            .guaveHover(.primary, pressed: configuration.isPressed)
     }
 }
 

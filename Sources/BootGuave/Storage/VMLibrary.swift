@@ -56,6 +56,27 @@ final class VMLibrary: ObservableObject {
         if runners[id]?.state.isActive == true { throw BootGuaveError.vmIsRunning }
     }
 
+    /// Na mesma rede vmnet, uma porta do Mac só pode ir para uma VM.
+    private func ensureFreeHostPorts(_ config: VMConfig) throws {
+        let others = VMNetworkFactory.members(of: config, in: configs).filter { $0.id != config.id }
+        for forward in config.portForwards {
+            if let owner = others.first(where: { other in
+                other.portForwards.contains { $0.proto == forward.proto && $0.hostPort == forward.hostPort }
+            }) {
+                throw BootGuaveError.hostPortInUse(forward.hostPort, owner.name)
+            }
+        }
+    }
+
+    /// Clone e importação: tira os redirecionamentos cujas portas outra VM da rede já usa.
+    private func dropTakenHostPorts(_ config: inout VMConfig) {
+        let taken = VMNetworkFactory.members(of: config, in: configs)
+            .filter { $0.id != config.id }
+            .flatMap(\.portForwards)
+            .map { "\($0.proto.rawValue):\($0.hostPort)" }
+        config.portForwards.removeAll { taken.contains("\($0.proto.rawValue):\($0.hostPort)") }
+    }
+
     private func ensureUnlocked(_ id: UUID) throws {
         if !bundle(id).isUnlocked { throw VaultError.locked }
     }
@@ -66,10 +87,8 @@ final class VMLibrary: ObservableObject {
 
     func create(_ config: VMConfig) {
         var config = config
-        // O padrão de rede dos Ajustes pode ser um modo vmnet, que precisa de sub-rede própria.
-        if config.networkMode != .nat && config.networkSubnet == nil {
-            config.networkSubnet = VMNetworkFactory.allocateSubnet(excluding: configs.compactMap(\.networkSubnet))
-        }
+        // O padrão de rede dos Ajustes pode ser um modo vmnet: entra na rede desse modo.
+        config.assignNetworkAddress(previousMode: nil, among: configs)
         if attempt({ _ = try VMBundle.create(config) }) != nil {
             ActivityLog.shared.add(.created, config.name)
         }
@@ -85,25 +104,25 @@ final class VMLibrary: ObservableObject {
     func applySettings(_ config: VMConfig) {
         guard let old = self.config(for: config.id) else { return }
         var config = config
-        if config.networkMode != .nat && config.networkSubnet == nil {
-            config.networkSubnet = VMNetworkFactory.allocateSubnet(excluding: configs.compactMap(\.networkSubnet))
-        }
+        config.assignNetworkAddress(previousMode: old.networkMode, among: configs)
         attempt {
             try ensureNotActive(config.id)
+            try ensureFreeHostPorts(config)
             let bundle = bundle(config.id)
             if config.diskGB > old.diskGB || config.extraDisks != old.extraDisks {
                 try ensureUnlocked(config.id)
+            }
+            var hardwareChanged = old
+            hardwareChanged.name = config.name
+            hardwareChanged.autoStart = config.autoStart
+            // Antes de mexer nos discos: o qemu-img não redimensiona qcow2 com snapshot interno.
+            if hardwareChanged != config && bundle.isUnlocked {
+                bundle.discardSavedState()
             }
             if config.diskGB > old.diskGB {
                 try bundle.growDisk(toGB: config.diskGB)
             }
             try bundle.syncExtraDisks(from: old.extraDisks, to: config.extraDisks)
-            var hardwareChanged = old
-            hardwareChanged.name = config.name
-            hardwareChanged.autoStart = config.autoStart
-            if hardwareChanged != config && bundle.isUnlocked {
-                bundle.discardSavedState()
-            }
             try bundle.save(config)
         }
         reload()
@@ -133,11 +152,10 @@ final class VMLibrary: ObservableObject {
             try ensureNotActive(id)
             if source.encrypted { throw BootGuaveError.encryptedNotSupported(String(localized: "Clonar")) }
             var copy = source
-            copy.networkSubnet = nil
-            if copy.networkMode != .nat {
-                copy.networkSubnet = VMNetworkFactory.allocateSubnet(excluding: configs.compactMap(\.networkSubnet))
-            }
             copy.id = UUID()
+            copy.networkSubnet = nil
+            copy.assignNetworkAddress(previousMode: nil, among: configs)
+            dropTakenHostPorts(&copy)
             copy.name = String(localized: "\(source.name) (cópia)")
             copy.macAddress = VZMACAddress.randomLocallyAdministered().string
             copy.createdAt = Date()
@@ -194,6 +212,8 @@ final class VMLibrary: ObservableObject {
             restored.name = current.name
             restored.encrypted = current.encrypted
             restored.networkSubnet = current.networkSubnet
+            restored.networkHost = current.networkHost
+            restored.assignNetworkAddress(previousMode: current.networkMode, among: configs)
             try bundle.save(restored)
             ActivityLog.shared.add(.snapshotRestored, current.name)
         }
@@ -273,9 +293,9 @@ final class VMLibrary: ObservableObject {
                 try? FileManager.default.removeItem(at: destination.machineIdentifierURL)
                 destination.discardSavedState()
             }
-            if config.networkMode != .nat {
-                config.networkSubnet = VMNetworkFactory.allocateSubnet(excluding: configs.compactMap(\.networkSubnet))
-            }
+            config.networkSubnet = nil
+            config.assignNetworkAddress(previousMode: nil, among: configs)
+            dropTakenHostPorts(&config)
             try destination.save(config)
         } catch {
             try? FileManager.default.removeItem(at: destination.url)

@@ -1,7 +1,6 @@
 /* VM Guave — ru. Gerado a partir do texto-fonte em pt-BR; confira com ./scripts/strings.py check */
 
 "" = "";
-"\n\nNão podem ser suspensas (Windows ou rede personalizada) e serão desligadas na hora: %@. Desligue-as pelo sistema convidado antes, se possível." = "\n\nЭти ВМ нельзя приостановить (Windows или собственная сеть), они будут выключены сразу: %@. По возможности сначала выключите их из гостевой системы.";
 "\"%@\" está em execução" = "«%@» работает";
 "%@ (cópia)" = "%@ (копия)";
 "%@ falhou: %@" = "Ошибка %@: %@";
@@ -21,8 +20,7 @@
 "A VM está suspensa: o snapshot inclui a memória e restaura com os programas abertos." = "ВМ приостановлена: снимок включает память и восстанавливается с открытыми программами.";
 "A conversão usa o qemu-img. %@" = "Для конвертации используется qemu-img. %@";
 "A instalação usa o arquivo escolhido." = "Для установки используется выбранный файл.";
-"A tela do Windows abre numa janela própria do QEMU." = "Экран Windows открывается в отдельном окне QEMU.";
-"A tela do Windows abre numa janela própria do QEMU. Ao iniciar a instalação, aperte uma tecla quando aparecer \"Press any key to boot from CD\". A rede só funciona depois de instalar os drivers do CD virtio-win (pasta NetKVM/w11/ARM64)." = "Экран Windows открывается в отдельном окне QEMU. В начале установки нажмите любую клавишу, когда появится «Press any key to boot from CD». Сеть заработает только после установки драйверов с диска virtio-win (папка NetKVM/w11/ARM64).";
+"A tela do Windows aparece na janela da VM, como nas outras VMs. Ao iniciar a instalação, aperte uma tecla quando aparecer \"Press any key to boot from CD\". A rede só funciona depois de instalar os drivers do CD virtio-win (pasta NetKVM/w11/ARM64)." = "Экран Windows отображается в окне ВМ, как у остальных ВМ. В начале установки нажмите любую клавишу, когда появится «Press any key to boot from CD». Сеть заработает только после установки драйверов с диска virtio-win (папка NetKVM/w11/ARM64).";
 "Adicionar" = "Добавить";
 "Adicionar redirecionamento" = "Добавить перенаправление";
 "Ao fechar com VMs ligadas" = "При выходе с работающими ВМ";
@@ -149,7 +147,6 @@
 "Instalação" = "Установка";
 "Instale com: brew install qemu swtpm" = "Установите командой: brew install qemu swtpm";
 "Integração e isolamento" = "Интеграция и изоляция";
-"Internet pelo Mac, IP fixo %@ e redirecionamento de portas." = "Интернет через Mac, фиксированный IP %@ и перенаправление портов.";
 "Janela pequena, sempre visível, em todos os espaços" = "Маленькое окно, всегда на виду, на всех рабочих столах";
 "Ligar as VMs marcadas para iniciar sozinhas" = "Запускать ВМ, отмеченные для автозапуска";
 "Linux" = "Linux";
@@ -162,7 +159,6 @@
 "Modo" = "Режим";
 "Mostra só a tela da VM; as barras voltam ao encostar o mouse no topo. Exige macOS 15 ou mais recente." = "Показывает только экран ВМ; панели появляются, если подвести указатель к верхнему краю. Требуется macOS 15 или новее.";
 "Mostra um aviso para escolher entre suspender, cancelar ou sair." = "Показывает окно с выбором: приостановить, отменить или выйти.";
-"Mostrar janela do Windows" = "Показать окно Windows";
 "Mostrar tela" = "Показать экран";
 "Máquinas virtuais" = "Виртуальные машины";
 "NAT (padrão)" = "NAT (по умолчанию)";
@@ -232,11 +228,9 @@
 "Rosetta não é suportado neste Mac." = "Rosetta не поддерживается на этом Mac.";
 "Rosetta para Linux não está instalado." = "Rosetta для Linux не установлена.";
 "Sair sem suspender" = "Выйти без приостановки";
-"Salva o estado das VMs e fecha. VMs Windows ou com rede personalizada não podem ser suspensas e são desligadas na hora." = "Сохраняет состояние ВМ и закрывается. ВМ Windows и ВМ с собственной сетью нельзя приостановить — они выключаются сразу.";
 "Salva o estado e desliga" = "Сохраняет состояние и выключает";
 "Salva o estado e desliga; ao iniciar, volta de onde parou" = "Сохраняет состояние и выключает; при запуске продолжает с того же места";
 "Salvar" = "Сохранить";
-"Sem internet. Só o Mac alcança a VM, pelo IP fixo %@. Bom para laboratório isolado." = "Без интернета. Доступ к ВМ есть только у Mac, по фиксированному IP %@. Подходит для изолированной лаборатории.";
 "Senha" = "Пароль";
 "Senha incorreta (ou o cofre já está em uso)." = "Неверный пароль (или хранилище уже используется).";
 "Senha incorreta." = "Неверный пароль.";
@@ -446,3 +440,10 @@
 "O instalador baixado não contém o VM Guave." = "В загруженном установщике нет VM Guave.";
 "Pular esta versão" = "Пропустить эту версию";
 "Reiniciar e atualizar" = "Перезапустить и обновить";
+"\n\nNão podem ser suspensas (rede personalizada) e serão desligadas na hora: %@. Desligue-as pelo sistema convidado antes, se possível." = "\n\nЭти ВМ нельзя приостановить (своя сеть), они будут выключены сразу: %@. По возможности сначала выключите их в гостевой системе.";
+"A porta %u do Mac já é redirecionada para \"%@\", que está na mesma rede. Escolha outra porta." = "Порт Mac %u уже перенаправлен на «%@» в той же сети. Выберите другой порт.";
+"A rede desta VM já está em uso por outra VM com regras antigas. Desligue todas as VMs desta rede e ligue de novo para aplicar o IP fixo e os redirecionamentos." = "Сеть этой ВМ уже используется другой ВМ со старыми правилами. Выключите все ВМ этой сети и запустите их снова, чтобы применить фиксированный IP и перенаправления.";
+"Internet pelo Mac, IP fixo %@ e redirecionamento de portas. As VMs neste modo ficam na mesma rede e se enxergam." = "Интернет через Mac, фиксированный IP %@ и перенаправление портов. ВМ в этом режиме находятся в одной сети и видят друг друга.";
+"Salva o estado das VMs e fecha. VMs Linux e macOS com rede personalizada não podem ser suspensas e são desligadas na hora." = "Сохраняет состояние ВМ и выходит. ВМ Linux и macOS со своей сетью нельзя приостановить, они выключаются сразу.";
+"Sem internet. Só o Mac e as outras VMs neste modo alcançam a VM, pelo IP fixo %@. Bom para laboratório isolado." = "Без интернета. Только Mac и другие ВМ в этом режиме видят эту ВМ по фиксированному IP %@. Подходит для изолированной лаборатории.";
+"tempo esgotado" = "время ожидания истекло";

@@ -135,6 +135,7 @@ private struct ImageCard: View {
                 }
                 Button { library.cancelDownload(image) } label: { Image(systemName: "xmark.circle.fill") }
                     .buttonStyle(.plain)
+                    .guaveHover(.icon)
                     .help("Cancelar")
             }
             .frame(height: 40)
@@ -177,6 +178,7 @@ private struct ImageCard: View {
         .buttonStyle(.plain)
         .menuIndicator(.hidden)
         .fixedSize()
+        .guaveHover(.icon)
     }
 }
 

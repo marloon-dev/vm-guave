@@ -18,6 +18,7 @@ struct VMDetailPage: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .guaveHover(.text)
             .padding(.horizontal, 36)
             .padding(.top, 22)
 

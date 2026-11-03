@@ -1,7 +1,7 @@
 import Combine
 import SwiftUI
 
-/// Uma rede como aparece na página (a NAT padrão é compartilhada; as vmnet são de cada VM).
+/// Uma rede como aparece na página (a NAT padrão e as vmnet podem ter várias VMs).
 private struct NetworkInfo: Identifiable {
     let id: String
     let title: String
@@ -29,16 +29,23 @@ struct NetworkPage: View {
             result.append(NetworkInfo(id: "qemu", title: String(localized: "NAT do QEMU"), mode: String(localized: "Rede de usuário do QEMU (Windows)"),
                                       subnet: "10.0.2.0/24", gateway: "10.0.2.2", dhcp: true, members: qemu))
         }
-        for config in library.configs where !config.os.usesQEMU && config.networkMode != .nat {
+        // VMs no mesmo modo vmnet e na mesma sub-rede dividem uma rede.
+        let vmnet = library.configs.filter { !$0.os.usesQEMU && $0.networkMode != .nat }
+        var seen = Set<String>()
+        for config in vmnet {
+            let networkID = "\(config.networkMode.rawValue)|\(config.networkSubnet ?? config.id.uuidString)"
+            guard seen.insert(networkID).inserted else { continue }
+            let members = config.networkSubnet == nil ? [config] : VMNetworkFactory.members(of: config, in: vmnet)
             let base = config.networkSubnet.map { $0.split(separator: ".").prefix(3).joined(separator: ".") }
+            let names = ListFormatter.localizedString(byJoining: members.map(\.name))
             result.append(NetworkInfo(
-                id: config.id.uuidString,
-                title: String(localized: "Rede de \(config.name)"),
+                id: networkID,
+                title: String(localized: "Rede de \(names)"),
                 mode: config.networkMode.displayName,
                 subnet: config.networkSubnet.map { "\($0)/24" } ?? "—",
                 gateway: base.map { "\($0).1" } ?? "—",
                 dhcp: true,
-                members: [config]
+                members: members
             ))
         }
         return result
@@ -107,6 +114,7 @@ struct NetworkPage: View {
                         .padding(.horizontal, 20)
                         .padding(.vertical, 12)
                         .contentShape(Rectangle())
+                        .guaveHover(.row(AnyShape(Rectangle())))
                         .onTapGesture { router.open(vm: config.id) }
                         Divider()
                     }

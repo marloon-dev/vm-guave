@@ -1,7 +1,6 @@
 /* VM Guave — pt-PT. Gerado a partir do texto-fonte em pt-BR; confira com ./scripts/strings.py check */
 
 "" = "";
-"\n\nNão podem ser suspensas (Windows ou rede personalizada) e serão desligadas na hora: %@. Desligue-as pelo sistema convidado antes, se possível." = "\n\nNão podem ser suspensas (Windows ou rede personalizada) e serão desligadas de imediato: %@. Se possível, desligue-as primeiro a partir do sistema convidado.";
 "\"%@\" está em execução" = "\"%@\" está em execução";
 "%@ (cópia)" = "%@ (cópia)";
 "%@ falhou: %@" = "%@ falhou: %@";
@@ -21,8 +20,7 @@
 "A VM está suspensa: o snapshot inclui a memória e restaura com os programas abertos." = "A VM está suspensa: o instantâneo inclui a memória e é restaurado com os programas abertos.";
 "A conversão usa o qemu-img. %@" = "A conversão usa o qemu-img. %@";
 "A instalação usa o arquivo escolhido." = "A instalação usa o ficheiro escolhido.";
-"A tela do Windows abre numa janela própria do QEMU." = "O ecrã do Windows abre numa janela própria do QEMU.";
-"A tela do Windows abre numa janela própria do QEMU. Ao iniciar a instalação, aperte uma tecla quando aparecer \"Press any key to boot from CD\". A rede só funciona depois de instalar os drivers do CD virtio-win (pasta NetKVM/w11/ARM64)." = "O ecrã do Windows abre numa janela própria do QEMU. Ao iniciar a instalação, prima uma tecla quando aparecer \"Press any key to boot from CD\". A rede só funciona depois de instalar os controladores do CD virtio-win (pasta NetKVM/w11/ARM64).";
+"A tela do Windows aparece na janela da VM, como nas outras VMs. Ao iniciar a instalação, aperte uma tecla quando aparecer \"Press any key to boot from CD\". A rede só funciona depois de instalar os drivers do CD virtio-win (pasta NetKVM/w11/ARM64)." = "O ecrã do Windows aparece na janela da VM, como nas outras VMs. Ao iniciar a instalação, prima uma tecla quando aparecer \"Press any key to boot from CD\". A rede só funciona depois de instalar os controladores do CD virtio-win (pasta NetKVM/w11/ARM64).";
 "Adicionar" = "Adicionar";
 "Adicionar redirecionamento" = "Adicionar reencaminhamento";
 "Ao fechar com VMs ligadas" = "Ao fechar com VM ligadas";
@@ -149,7 +147,6 @@
 "Instalação" = "Instalação";
 "Instale com: brew install qemu swtpm" = "Instale com: brew install qemu swtpm";
 "Integração e isolamento" = "Integração e isolamento";
-"Internet pelo Mac, IP fixo %@ e redirecionamento de portas." = "Internet através do Mac, IP fixo %@ e reencaminhamento de portas.";
 "Janela pequena, sempre visível, em todos os espaços" = "Janela pequena, sempre visível, em todos os espaços";
 "Ligar as VMs marcadas para iniciar sozinhas" = "Ligar as VM marcadas para iniciar sozinhas";
 "Linux" = "Linux";
@@ -162,7 +159,6 @@
 "Modo" = "Modo";
 "Mostra só a tela da VM; as barras voltam ao encostar o mouse no topo. Exige macOS 15 ou mais recente." = "Mostra só o ecrã da VM; as barras voltam ao encostar o cursor ao topo. Requer macOS 15 ou posterior.";
 "Mostra um aviso para escolher entre suspender, cancelar ou sair." = "Mostra um aviso para escolher entre suspender, cancelar ou sair.";
-"Mostrar janela do Windows" = "Mostrar janela do Windows";
 "Mostrar tela" = "Mostrar ecrã";
 "Máquinas virtuais" = "Máquinas virtuais";
 "NAT (padrão)" = "NAT (predefinição)";
@@ -232,11 +228,9 @@
 "Rosetta não é suportado neste Mac." = "O Rosetta não é suportado neste Mac.";
 "Rosetta para Linux não está instalado." = "O Rosetta para Linux não está instalado.";
 "Sair sem suspender" = "Sair sem suspender";
-"Salva o estado das VMs e fecha. VMs Windows ou com rede personalizada não podem ser suspensas e são desligadas na hora." = "Guarda o estado das VM e fecha. As VM Windows ou com rede personalizada não podem ser suspensas e são desligadas de imediato.";
 "Salva o estado e desliga" = "Guarda o estado e desliga";
 "Salva o estado e desliga; ao iniciar, volta de onde parou" = "Guarda o estado e desliga; ao iniciar, retoma onde parou";
 "Salvar" = "Guardar";
-"Sem internet. Só o Mac alcança a VM, pelo IP fixo %@. Bom para laboratório isolado." = "Sem internet. Só o Mac chega à VM, pelo IP fixo %@. Bom para um laboratório isolado.";
 "Senha" = "Palavra-passe";
 "Senha incorreta (ou o cofre já está em uso)." = "Palavra-passe incorreta (ou o cofre já está em uso).";
 "Senha incorreta." = "Palavra-passe incorreta.";
@@ -446,3 +440,10 @@
 "O instalador baixado não contém o VM Guave." = "O instalador transferido não contém o VM Guave.";
 "Pular esta versão" = "Ignorar esta versão";
 "Reiniciar e atualizar" = "Reiniciar e atualizar";
+"\n\nNão podem ser suspensas (rede personalizada) e serão desligadas na hora: %@. Desligue-as pelo sistema convidado antes, se possível." = "\n\nNão podem ser suspensas (rede personalizada) e serão desligadas de imediato: %@. Se possível, desligue-as primeiro a partir do sistema convidado.";
+"A porta %u do Mac já é redirecionada para \"%@\", que está na mesma rede. Escolha outra porta." = "A porta %u do Mac já é redirecionada para \"%@\", que está na mesma rede. Escolha outra porta.";
+"A rede desta VM já está em uso por outra VM com regras antigas. Desligue todas as VMs desta rede e ligue de novo para aplicar o IP fixo e os redirecionamentos." = "A rede desta VM já está a ser usada por outra VM com regras antigas. Desligue todas as VMs desta rede e volte a ligá-las para aplicar o IP fixo e os redirecionamentos.";
+"Internet pelo Mac, IP fixo %@ e redirecionamento de portas. As VMs neste modo ficam na mesma rede e se enxergam." = "Internet através do Mac, IP fixo %@ e redirecionamento de portas. As VMs neste modo ficam na mesma rede e veem-se umas às outras.";
+"Salva o estado das VMs e fecha. VMs Linux e macOS com rede personalizada não podem ser suspensas e são desligadas na hora." = "Guarda o estado das VMs e fecha. As VMs Linux e macOS com rede personalizada não podem ser suspensas e são desligadas de imediato.";
+"Sem internet. Só o Mac e as outras VMs neste modo alcançam a VM, pelo IP fixo %@. Bom para laboratório isolado." = "Sem internet. Só o Mac e as outras VMs neste modo chegam à VM, pelo IP fixo %@. Bom para um laboratório isolado.";
+"tempo esgotado" = "tempo esgotado";

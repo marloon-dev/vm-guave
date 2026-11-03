@@ -76,7 +76,11 @@ final class VMRunner: NSObject, ObservableObject, VZVirtualMachineDelegate {
     private var downloader: FileDownloader?
     private var installObservation: NSKeyValueObservation?
     /// Motor QEMU (VMs Windows).
-    private var qemu: QEMUMachine?
+    private var qemu: QEMUMachine? {
+        didSet { qemuDisplaySocket = qemu?.displaySocket }
+    }
+    /// Tela da VM Windows em execução (a janela da VM se conecta a ela).
+    @Published private(set) var qemuDisplaySocket: URL?
 
     init(config: VMConfig) {
         self.config = config
@@ -100,6 +104,7 @@ final class VMRunner: NSObject, ObservableObject, VZVirtualMachineDelegate {
                 throw BootGuaveError.macOSNotInstalled
             }
             let vzConfig = try VMConfigurationBuilder.build(for: config, bundle: bundle)
+            notice = VMNetworkFactory.takeWarning(for: config.id)
             let vm = VZVirtualMachine(configuration: vzConfig)
             vm.delegate = self
             virtualMachine = vm
@@ -147,9 +152,8 @@ final class VMRunner: NSObject, ObservableObject, VZVirtualMachineDelegate {
         state = .starting
         Task {
             do {
-                try await machine.start()
+                if let warning = try await machine.start() { notice = warning }
                 state = .running
-                machine.showWindow()
             } catch {
                 qemu = nil
                 fail(error)
@@ -168,11 +172,6 @@ final class VMRunner: NSObject, ObservableObject, VZVirtualMachineDelegate {
                 notice = error.localizedDescription
             }
         }
-    }
-
-    /// VMs Windows: a tela é a janela do QEMU.
-    func showQEMUWindow() {
-        qemu?.showWindow()
     }
 
     private func boot(_ vm: VZVirtualMachine) {
@@ -222,14 +221,14 @@ final class VMRunner: NSObject, ObservableObject, VZVirtualMachineDelegate {
         }
     }
 
-    /// O framework da Apple recusa salvar o estado de VMs em rede vmnet ("permission denied");
-    /// no QEMU o suspender não foi implementado.
+    /// O framework da Apple recusa salvar o estado de VMs em rede vmnet ("permission denied").
+    /// No QEMU (Windows) o estado vai para um snapshot interno do disk.qcow2.
     var canSuspend: Bool {
-        !config.os.usesQEMU && config.networkMode == .nat
+        config.os.usesQEMU || config.networkMode == .nat
     }
 
     var suspendUnavailableReason: String? {
-        if config.os.usesQEMU { return QEMUError.unsupported(String(localized: "Suspender")).localizedDescription }
+        if config.os.usesQEMU { return nil }
         if config.networkMode != .nat {
             return String(localized: "Suspender não é possível com rede personalizada: o macOS não salva o estado de VMs em redes vmnet. Use NAT para poder suspender.")
         }
@@ -240,6 +239,20 @@ final class VMRunner: NSObject, ObservableObject, VZVirtualMachineDelegate {
     func suspend() {
         if let reason = suspendUnavailableReason {
             notice = reason
+            return
+        }
+        if let qemu, state == .running || state == .paused {
+            let wasPaused = state == .paused
+            state = .saving
+            Task {
+                do {
+                    // O QEMU fecha no fim; o onExit leva a VM para "Suspensa".
+                    try await qemu.suspend(wasPaused: wasPaused)
+                } catch {
+                    notice = String(localized: "Não foi possível suspender: \(error.localizedDescription)")
+                    state = wasPaused ? .paused : .running
+                }
+            }
             return
         }
         guard let vm = virtualMachine, state == .running || state == .paused else { return }

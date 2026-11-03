@@ -36,8 +36,9 @@ extension VMBundle {
             for file in Self.snapshotFiles where FileManager.default.fileExists(atPath: dataURL.appendingPathComponent(file).path) {
                 try FileCloner.clone(dataURL.appendingPathComponent(file), to: dir.appendingPathComponent(file))
             }
-            if snapshot.includesMachineState {
-                try FileCloner.clone(savedStateURL, to: dir.appendingPathComponent(savedStateURL.lastPathComponent))
+            // Windows: a memória já vai junto no disk.qcow2; basta copiar o marcador.
+            for state in [savedStateURL, qemuSavedStateURL] where FileManager.default.fileExists(atPath: state.path) {
+                try FileCloner.clone(state, to: dir.appendingPathComponent(state.lastPathComponent))
             }
             try FileManager.default.copyItem(at: configURL, to: dir.appendingPathComponent("config.json"))
             try JSONEncoder.iso8601.encode(snapshot).write(to: dir.appendingPathComponent("meta.json"))
@@ -50,6 +51,8 @@ extension VMBundle {
 
     func restoreSnapshot(_ snapshot: VMSnapshot) throws {
         let dir = snapshotURL(snapshot.id)
+        // Antes de trocar o disco: o estado suspenso atual mora no qcow2 de agora.
+        discardSavedState()
         for file in Self.snapshotFiles {
             let target = dataURL.appendingPathComponent(file)
             let source = dir.appendingPathComponent(file)
@@ -58,9 +61,13 @@ extension VMBundle {
                 try FileCloner.clone(source, to: target)
             }
         }
-        discardSavedState()
         if snapshot.includesMachineState {
-            try FileCloner.clone(dir.appendingPathComponent(savedStateURL.lastPathComponent), to: savedStateURL)
+            for state in [savedStateURL, qemuSavedStateURL] {
+                let source = dir.appendingPathComponent(state.lastPathComponent)
+                if FileManager.default.fileExists(atPath: source.path) {
+                    try FileCloner.clone(source, to: state)
+                }
+            }
         }
         let savedConfig = dir.appendingPathComponent("config.json")
         if FileManager.default.fileExists(atPath: savedConfig.path) {

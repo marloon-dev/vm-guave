@@ -36,11 +36,14 @@ struct VMBundle {
     var tpmStateURL: URL { dataURL.appendingPathComponent("tpm", isDirectory: true) }
     /// Memória e dispositivos da VM suspensa. Só vale para o disco no estado em que foi salvo.
     var savedStateURL: URL { dataURL.appendingPathComponent("state.vzvmsave") }
+    /// VMs Windows suspensas: o estado fica dentro do disk.qcow2 (snapshot interno
+    /// `QEMUMachine.suspendTag`); este arquivo só marca que ele existe e vale.
+    var qemuSavedStateURL: URL { dataURL.appendingPathComponent("state.qemu") }
 
     /// Arquivos que definem o estado da máquina (copiados em snapshots e clones).
     static let machineFiles = ["disk.img", "disk.qcow2", "disks", "efi-vars.fd", "hardware-model", "aux.img", "tpm"]
     /// Tudo o que vai para dentro do cofre ao criptografar.
-    static let vaultFiles = machineFiles + ["machine-id", "state.vzvmsave", "snapshots"]
+    static let vaultFiles = machineFiles + ["machine-id", "state.vzvmsave", "state.qemu", "snapshots"]
 
     static var libraryURL: URL {
         let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
@@ -107,11 +110,21 @@ struct VMBundle {
     }
 
     var hasSavedState: Bool {
-        FileManager.default.fileExists(atPath: savedStateURL.path)
+        FileManager.default.fileExists(atPath: savedStateURL.path) || hasQEMUSavedState
+    }
+
+    var hasQEMUSavedState: Bool {
+        FileManager.default.fileExists(atPath: qemuSavedStateURL.path)
     }
 
     func discardSavedState() {
         try? FileManager.default.removeItem(at: savedStateURL)
+        guard hasQEMUSavedState else { return }
+        // Apaga o snapshot interno do qcow2 (memória da VM) antes do marcador.
+        if FileManager.default.fileExists(atPath: qcow2DiskURL.path), let qemuImg = QEMUTools.qemuImg {
+            try? Self.runSync(qemuImg, ["snapshot", "-d", QEMUMachine.suspendTag, qcow2DiskURL.path])
+        }
+        try? FileManager.default.removeItem(at: qemuSavedStateURL)
     }
 
     /// Só aumenta: diminuir cortaria partições do convidado.
@@ -221,6 +234,7 @@ enum BootGuaveError: LocalizedError {
     case macOSHardwareUnsupported
     case notAVirtualMachine(String)
     case encryptedNotSupported(String)
+    case hostPortInUse(UInt16, String)
 
     var errorDescription: String? {
         switch self {
@@ -242,6 +256,8 @@ enum BootGuaveError: LocalizedError {
             return String(localized: "Não é uma VM do VM Guave (falta config.json): \(path)")
         case .encryptedNotSupported(let what):
             return String(localized: "\(what) não está disponível para VMs criptografadas. Remova a criptografia antes.")
+        case .hostPortInUse(let port, let owner):
+            return String(localized: "A porta \(port) do Mac já é redirecionada para \"\(owner)\", que está na mesma rede. Escolha outra porta.")
         }
     }
 }

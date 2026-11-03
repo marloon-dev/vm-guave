@@ -70,6 +70,7 @@ struct VMSettingsView: View {
                                 Image(systemName: "trash")
                             }
                             .buttonStyle(.borderless)
+                            .guaveHover(.icon)
                         }
                     }
                     HStack {
@@ -158,6 +159,14 @@ struct VMSettingsView: View {
         config.os.usesQEMU || config.networkMode == .shared
     }
 
+    /// O IP só é conhecido depois de salvar quando a VM troca de modo (entra na rede do modo novo).
+    private var fixedIP: String {
+        guard config.networkMode == original.networkMode, let ip = config.guestIPAddress else {
+            return String(localized: "(definido ao salvar)")
+        }
+        return ip
+    }
+
     private var duplicateHostPorts: Bool {
         let keys = config.portForwards.map { "\($0.proto.rawValue):\($0.hostPort)" }
         return Set(keys).count != keys.count
@@ -185,11 +194,11 @@ struct VMSettingsView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 case .shared:
-                    Text("Internet pelo Mac, IP fixo \(config.guestIPAddress ?? String(localized: "(definido ao salvar)")) e redirecionamento de portas.")
+                    Text("Internet pelo Mac, IP fixo \(fixedIP) e redirecionamento de portas. As VMs neste modo ficam na mesma rede e se enxergam.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 case .hostOnly:
-                    Text("Sem internet. Só o Mac alcança a VM, pelo IP fixo \(config.guestIPAddress ?? String(localized: "(definido ao salvar)")). Bom para laboratório isolado.")
+                    Text("Sem internet. Só o Mac e as outras VMs neste modo alcançam a VM, pelo IP fixo \(fixedIP). Bom para laboratório isolado.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -217,6 +226,7 @@ struct VMSettingsView: View {
                             Image(systemName: "trash")
                         }
                         .buttonStyle(.borderless)
+                        .guaveHover(.icon)
                     }
                 }
                 Button("Adicionar redirecionamento") {

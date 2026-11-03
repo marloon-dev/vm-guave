@@ -139,6 +139,7 @@ struct StoragePage: View {
                     .padding(.horizontal, 20)
                     .padding(.vertical, 16)
                     .contentShape(Rectangle())
+                    .guaveHover(.row(AnyShape(Rectangle())))
                     .onTapGesture { router.open(vm: volume.vmID) }
                 }
             }

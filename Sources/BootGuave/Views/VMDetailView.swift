@@ -298,15 +298,11 @@ struct VMDetailView: View {
 
     private func start() {
         runner.start()
-        if !config.os.usesQEMU { openWindow(value: config.id) }
+        openWindow(value: config.id)
     }
 
     private func showScreen() {
-        if config.os.usesQEMU {
-            runner.showQEMUWindow()
-        } else {
-            openWindow(value: config.id)
-        }
+        openWindow(value: config.id)
     }
 
     @ViewBuilder
@@ -418,6 +414,7 @@ struct VMDetailView: View {
                         Image(systemName: "trash")
                     }
                     .buttonStyle(.borderless)
+                    .guaveHover(.icon)
                 }
             }
         } header: {

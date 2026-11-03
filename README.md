@@ -146,7 +146,7 @@ para emulação se a aceleração não estiver disponível. O app do Mac continu
 
 O que faz: criar VM Linux/Windows a partir de uma ISO (disco qcow2 que cresce conforme o
 uso, NVMe, UEFI via OVMF), ligar/desligar/forçar, pausar/continuar, reiniciar, snapshots do
-disco, redirecionar portas e aumentar o disco. A tela da VM abre numa janela própria do QEMU.
+disco, redirecionar portas e aumentar o disco. A tela da VM aparece na janela do VM Guave, com a mesma barra das VMs Linux e macOS.
 O estado vem do QEMU via QMP, então fechar e reabrir o app não perde o controle das VMs ligadas.
 
 **O QEMU não vem junto** e precisa estar instalado:
@@ -206,22 +206,33 @@ brew install qemu swtpm
 
 1. Baixe a ISO **Windows 11 ARM64** no site da Microsoft (o assistente tem o link).
 2. **+** → Windows → escolha a ISO → **Baixar** drivers virtio-win → **Criar VM** → **Iniciar**.
-3. A tela abre numa janela própria do QEMU. Aperte uma tecla em "Press any key to boot from CD".
+3. A tela aparece na janela da VM (pausar, suspender, Picture in Picture e tela cheia com ⌘F).
+   Aperte uma tecla em "Press any key to boot from CD".
 4. Depois de instalar, a rede funciona após instalar o driver do CD virtio-win
    (`NetKVM\w11\ARM64`).
 
-Limitações: sem suspender, sem pasta compartilhada e sem aceleração 3D (vídeo pelo `ramfb`).
+**Suspender** funciona: memória e dispositivos vão para um snapshot interno do `disk.qcow2`
+e, ao iniciar, a VM volta de onde parou. Se o estado não puder ser carregado (por exemplo,
+depois de trocar a ISO), ela inicia do zero e avisa.
+
+Limitações: sem pasta compartilhada e sem aceleração 3D (vídeo pelo `ramfb`).
 
 ## Rede
 
 | Modo | Internet | IP | Redirecionar portas | Suspender |
 |---|---|---|---|---|
 | NAT (padrão) | sim | dinâmico (192.168.64.x) | não | sim |
-| Compartilhada | sim | fixo (`.2` da sub-rede da VM) | sim | não* |
+| Compartilhada | sim | fixo (`.2`, `.3`… da sub-rede do modo) | sim | não* |
 | Só com o Mac | não | fixo | — | não* |
 
 \* O macOS não salva o estado de VMs em redes vmnet. Modos vmnet exigem macOS 26+.
-VMs Windows usam o NAT do QEMU, com redirecionamento de portas.
+VMs Windows usam o NAT do QEMU, com redirecionamento de portas (e podem ser suspensas).
+
+**Laboratório com várias máquinas:** as VMs Linux e macOS no mesmo modo vmnet ficam na mesma
+rede e se enxergam (ex.: `ssh 192.168.200.3` de dentro da VM `.2`). Cada uma recebe o
+próximo IP livre ao entrar no modo. Uma porta do Mac só pode ser redirecionada para uma VM
+da rede. VMs criadas antes desta versão mantêm a rede própria; para juntá-las, mude para NAT,
+salve e volte ao modo desejado.
 
 ## VM criptografada
 
@@ -348,12 +359,12 @@ Comparado com o que um virtualizador comercial completo oferece, separado pelo q
 - [x] Tela cheia por ⌘F
 
 **Fase 4 — possível**
-- [ ] Impedir duas cópias do app abertas ao mesmo tempo (hoje a segunda apaga o socket do `bgctl`)
+- [x] Impedir duas cópias do app abertas ao mesmo tempo
 - [ ] USB do Mac na VM: a API existe no macOS 27 (`VZUSBPassthroughDevice`), mas exige a
       entitlement `com.apple.developer.accessory-access.usb` (Apple Developer Program)
-- [ ] Suspender VMs Windows (`savevm` do QEMU, disco qcow2)
-- [ ] Tela do Windows dentro da janela do VM Guave (QEMU via VNC/SPICE embutido)
-- [ ] Várias VMs na mesma rede vmnet (laboratório com várias máquinas)
+- [x] Suspender VMs Windows (snapshot interno do qcow2 via QMP)
+- [x] Tela do Windows dentro da janela do VM Guave (VNC local do QEMU, num socket Unix)
+- [x] Várias VMs na mesma rede vmnet (laboratório com várias máquinas)
 
 **Limitações do framework da Apple (fora de alcance)**
 - Rede bridge: exige entitlement restrita da Apple (`com.apple.vm.networking`)

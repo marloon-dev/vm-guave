@@ -250,6 +250,7 @@ struct GuaveSearchField: View {
                     Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
                 }
                 .buttonStyle(.plain)
+                .guaveHover(.icon)
             }
         }
         .padding(.horizontal, 16)
@@ -279,6 +280,7 @@ struct SecondaryButtonStyle: ButtonStyle {
             .overlay(RoundedRectangle(cornerRadius: large ? 12 : 9, style: .continuous).strokeBorder(Surface.stroke))
             .opacity(isEnabled ? 1 : 0.45)
             .contentShape(Rectangle())
+            .guaveHover(.secondary(HoverKind.rounded(large ? 12 : 9)), pressed: configuration.isPressed)
     }
 }
 
@@ -297,8 +299,10 @@ struct FilterChip: View {
                 .padding(.vertical, 9)
                 .background(Capsule().fill(selected ? Brand.green : Surface.field))
                 .overlay(Capsule().strokeBorder(selected ? Color.clear : Surface.stroke))
+                .contentShape(Capsule())
         }
         .buttonStyle(.plain)
+        .guaveHover(selected ? .primary : .secondary(AnyShape(Capsule())))
     }
 }
 
@@ -416,13 +420,14 @@ extension View {
     }
 }
 
-private struct PointingHandCursor: ViewModifier {
+struct PointingHandCursor: ViewModifier {
+    var enabled = true
     @State private var pushed = false
 
     func body(content: Content) -> some View {
         content
             .onHover { inside in
-                if inside, !pushed {
+                if inside, enabled, !pushed {
                     NSCursor.pointingHand.push()
                     pushed = true
                 } else if !inside, pushed {
@@ -433,5 +438,90 @@ private struct PointingHandCursor: ViewModifier {
             .onDisappear {
                 if pushed { NSCursor.pop(); pushed = false }
             }
+    }
+}
+
+// MARK: - Animação de hover dos clicáveis
+
+/// Como o efeito aparece em cada tipo de clicável. É o mesmo do botão "Baixar" da página Imagens:
+/// cresce, sobe um pouco, brilha em verde e mostra a mãozinha de link.
+enum HoverKind {
+    /// Botão verde cheio: clareia e brilha.
+    case primary
+    /// Botão/pílula com contorno: ganha fundo e borda verdes.
+    case secondary(AnyShape)
+    /// Ícone solto (lixeira, ×, …): cresce mais, por ser pequeno.
+    case icon
+    /// Linha de tabela ou item de lista: fundo verde suave, sem crescer muito (não sai do cartão).
+    case row(AnyShape)
+    /// Link de texto e botões padrão do sistema.
+    case text
+
+    static func rounded(_ radius: CGFloat) -> AnyShape { AnyShape(RoundedRectangle(cornerRadius: radius, style: .continuous)) }
+}
+
+extension View {
+    func guaveHover(_ kind: HoverKind = .text, pressed: Bool = false) -> some View {
+        modifier(GuaveHover(kind: kind, pressed: pressed))
+    }
+}
+
+private struct GuaveHover: ViewModifier {
+    let kind: HoverKind
+    let pressed: Bool
+    @Environment(\.isEnabled) private var isEnabled
+    @State private var hovering = false
+
+    private var scale: CGFloat {
+        switch kind {
+        case .icon: return 1.15
+        case .row: return 1.01
+        default: return 1.03
+        }
+    }
+
+    private var lift: CGFloat {
+        if case .row = kind { return 0 }
+        return -2
+    }
+
+    func body(content: Content) -> some View {
+        let on = hovering && isEnabled
+        content
+            .overlay {
+                switch kind {
+                case .secondary(let shape):
+                    ZStack {
+                        shape.fill(Brand.green.opacity(on ? 0.16 : 0))
+                        shape.stroke(Brand.green.opacity(on ? 1 : 0), lineWidth: 1.5)
+                    }
+                    .allowsHitTesting(false)
+                case .row(let shape):
+                    shape.fill(Brand.green.opacity(on ? 0.08 : 0)).allowsHitTesting(false)
+                default:
+                    EmptyView()
+                }
+            }
+            .brightness(isPrimary && on ? 0.06 : 0)
+            .shadow(color: Brand.green.opacity(on && !isRow ? 0.4 : 0), radius: on ? 12 : 0, y: on ? 5 : 0)
+            .scaleEffect(pressed ? 0.97 : (on ? scale : 1))
+            .offset(y: on && !pressed ? lift : 0)
+            .onHover { hovering = $0 }
+            .modifier(PointingHandCursor(enabled: isEnabled))
+            .animation(.spring(response: 0.28, dampingFraction: 0.6), value: on)
+            .animation(.easeOut(duration: 0.12), value: pressed)
+    }
+
+    private var isPrimary: Bool { if case .primary = kind { return true }; return false }
+    private var isRow: Bool { if case .row = kind { return true }; return false }
+}
+
+/// Botões sem estilo próprio (os padrões do sistema nas folhas e formulários): mantém o visual
+/// do macOS e acrescenta só a animação de hover.
+struct HoverDefaultButtonStyle: PrimitiveButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        Button(configuration)
+            .buttonStyle(.automatic)
+            .guaveHover(.text)
     }
 }

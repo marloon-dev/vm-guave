@@ -204,6 +204,7 @@ struct OverviewPage: View {
                         .foregroundStyle(Brand.green)
                     }
                     .buttonStyle(.plain)
+                    .guaveHover(.text)
                 }
             }
             .padding(.bottom, 10)

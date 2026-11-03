@@ -15,25 +15,21 @@ struct VMWindowView: View {
         Group {
             if let vm = runner.virtualMachine {
                 VMDisplayView(virtualMachine: vm)
+            } else if let socket = runner.qemuDisplaySocket, runner.state.isActive {
+                QEMUDisplayView(socket: socket)
             } else {
                 VStack(spacing: 12) {
                     Image(systemName: "display")
                         .font(.system(size: 40))
                         .foregroundStyle(.secondary)
                     StatusBadge(state: runner.state)
-                    if runner.config.os.usesQEMU {
-                        Text("A tela do Windows abre numa janela própria do QEMU.")
-                            .foregroundStyle(.secondary)
-                        if runner.state.isActive {
-                            Button("Mostrar janela do Windows") { runner.showQEMUWindow() }
-                        }
-                    }
                     if case .error(let message) = runner.state {
                         Text(message).foregroundStyle(.red).multilineTextAlignment(.center)
                     }
                     if !runner.state.isActive {
                         Button(runner.state == .suspended ? "Retomar" : "Iniciar") { runner.start() }
                             .buttonStyle(.borderedProminent)
+                            .guaveHover(.text)
                     }
                 }
                 .padding()

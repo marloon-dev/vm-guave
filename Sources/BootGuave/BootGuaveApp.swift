@@ -149,7 +149,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             : String(localized: "\(active.count) VMs estão em execução")
         let unsuspendable = active.filter { !$0.canSuspend }.map(\.config.name)
         alert.informativeText = String(localized: "Suspender salva o estado: ao abrir de novo, elas voltam de onde pararam. Sair sem suspender equivale a tirar da tomada.")
-            + (unsuspendable.isEmpty ? "" : String(localized: "\n\nNão podem ser suspensas (Windows ou rede personalizada) e serão desligadas na hora: \(unsuspendable.joined(separator: ", ")). Desligue-as pelo sistema convidado antes, se possível."))
+            + (unsuspendable.isEmpty ? "" : String(localized: "\n\nNão podem ser suspensas (rede personalizada) e serão desligadas na hora: \(unsuspendable.joined(separator: ", ")). Desligue-as pelo sistema convidado antes, se possível."))
         alert.addButton(withTitle: String(localized: "Suspender e sair"))
         alert.addButton(withTitle: String(localized: "Cancelar"))
         alert.addButton(withTitle: String(localized: "Sair sem suspender"))

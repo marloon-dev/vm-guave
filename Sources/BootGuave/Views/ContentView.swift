@@ -60,6 +60,9 @@ struct ContentView: View {
         } message: {
             Text(library.lastError ?? "")
         }
+        // Por último, para valer também nas folhas: botões sem estilo próprio (formulários,
+        // assistentes) ganham a animação de hover do app.
+        .buttonStyle(HoverDefaultButtonStyle())
     }
 
     @ViewBuilder
@@ -132,7 +135,6 @@ private struct SidebarItem: View {
     let page: AppPage
     let selected: Bool
     let action: () -> Void
-    @State private var hovering = false
 
     var body: some View {
         Button(action: action) {
@@ -149,12 +151,12 @@ private struct SidebarItem: View {
             .padding(.vertical, 11)
             .background(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(selected ? Brand.green : (hovering ? Color.primary.opacity(0.06) : .clear))
+                    .fill(selected ? Brand.green : .clear)
             )
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .onHover { hovering = $0 }
+        .guaveHover(selected ? .primary : .secondary(HoverKind.rounded(12)))
     }
 }
 

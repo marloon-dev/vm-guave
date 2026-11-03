@@ -88,6 +88,7 @@ struct MachinesPage: View {
                     .buttonStyle(.plain)
                     .menuIndicator(.hidden)
                     .fixedSize()
+                    .guaveHover(.secondary(HoverKind.rounded(12)))
                 }
 
                 VStack(spacing: 0) {
@@ -130,7 +131,6 @@ private struct MachineRow: View {
     @EnvironmentObject private var library: VMLibrary
     @Environment(\.openWindow) private var openWindow
     @ObservedObject private var router = AppRouter.shared
-    @State private var hovering = false
     @State private var confirmingDelete = false
 
     private var config: VMConfig { runner.config }
@@ -163,9 +163,8 @@ private struct MachineRow: View {
         .font(.body)
         .padding(.horizontal, 20)
         .padding(.vertical, 14)
-        .background(hovering ? Color.primary.opacity(0.04) : .clear)
         .contentShape(Rectangle())
-        .onHover { hovering = $0 }
+        .guaveHover(.row(AnyShape(Rectangle())))
         .onTapGesture { router.open(vm: config.id) }
         .confirmationDialog("Excluir \"\(config.name)\"?", isPresented: $confirmingDelete) {
             Button("Excluir disco, snapshots e configuração", role: .destructive) {
@@ -207,14 +206,15 @@ private struct MachineRow: View {
         .buttonStyle(.plain)
         .menuIndicator(.hidden)
         .fixedSize()
+        .guaveHover(.secondary(HoverKind.rounded(9)))
     }
 
     private func start() {
         runner.start()
-        if !config.os.usesQEMU { openWindow(value: config.id) }
+        openWindow(value: config.id)
     }
 
     private func showScreen() {
-        if config.os.usesQEMU { runner.showQEMUWindow() } else { openWindow(value: config.id) }
+        openWindow(value: config.id)
     }
 }

@@ -146,6 +146,7 @@ struct SettingsPage: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .guaveHover(.secondary(HoverKind.rounded(12)))
             }
             Spacer()
         }
@@ -202,7 +203,7 @@ struct SettingsPage: View {
         case .ask:
             return String(localized: "Mostra um aviso para escolher entre suspender, cancelar ou sair.")
         case .suspend:
-            return String(localized: "Salva o estado das VMs e fecha. VMs Windows ou com rede personalizada não podem ser suspensas e são desligadas na hora.")
+            return String(localized: "Salva o estado das VMs e fecha. VMs Linux e macOS com rede personalizada não podem ser suspensas e são desligadas na hora.")
         case .shutdown:
             return String(localized: "Fecha sem salvar nada, como tirar da tomada. Pode perder o que não foi salvo dentro das VMs.")
         }

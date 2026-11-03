@@ -1,7 +1,6 @@
 /* VM Guave — en. Gerado a partir do texto-fonte em pt-BR; confira com ./scripts/strings.py check */
 
 "" = "";
-"\n\nNão podem ser suspensas (Windows ou rede personalizada) e serão desligadas na hora: %@. Desligue-as pelo sistema convidado antes, se possível." = "\n\nThese can't be suspended (Windows or custom network) and will be shut down immediately: %@. If possible, shut them down from the guest system first.";
 "\"%@\" está em execução" = "\"%@\" is running";
 "%@ (cópia)" = "%@ (copy)";
 "%@ falhou: %@" = "%@ failed: %@";
@@ -21,8 +20,7 @@
 "A VM está suspensa: o snapshot inclui a memória e restaura com os programas abertos." = "The VM is suspended: the snapshot includes memory and restores with programs open.";
 "A conversão usa o qemu-img. %@" = "Conversion uses qemu-img. %@";
 "A instalação usa o arquivo escolhido." = "Installation uses the chosen file.";
-"A tela do Windows abre numa janela própria do QEMU." = "The Windows screen opens in a separate QEMU window.";
-"A tela do Windows abre numa janela própria do QEMU. Ao iniciar a instalação, aperte uma tecla quando aparecer \"Press any key to boot from CD\". A rede só funciona depois de instalar os drivers do CD virtio-win (pasta NetKVM/w11/ARM64)." = "The Windows screen opens in a separate QEMU window. When installation starts, press a key when \"Press any key to boot from CD\" appears. Networking only works after installing the drivers from the virtio-win CD (folder NetKVM/w11/ARM64).";
+"A tela do Windows aparece na janela da VM, como nas outras VMs. Ao iniciar a instalação, aperte uma tecla quando aparecer \"Press any key to boot from CD\". A rede só funciona depois de instalar os drivers do CD virtio-win (pasta NetKVM/w11/ARM64)." = "The Windows screen appears in the VM's window, like the other VMs. When installation starts, press a key when \"Press any key to boot from CD\" appears. Networking only works after installing the drivers from the virtio-win CD (folder NetKVM/w11/ARM64).";
 "Adicionar" = "Add";
 "Adicionar redirecionamento" = "Add forwarding rule";
 "Ao fechar com VMs ligadas" = "On quit with VMs running";
@@ -149,7 +147,6 @@
 "Instalação" = "Installation";
 "Instale com: brew install qemu swtpm" = "Install with: brew install qemu swtpm";
 "Integração e isolamento" = "Integration and isolation";
-"Internet pelo Mac, IP fixo %@ e redirecionamento de portas." = "Internet through the Mac, fixed IP %@ and port forwarding.";
 "Janela pequena, sempre visível, em todos os espaços" = "Small window, always visible, on all Spaces";
 "Ligar as VMs marcadas para iniciar sozinhas" = "Start VMs marked to start automatically";
 "Linux" = "Linux";
@@ -162,7 +159,6 @@
 "Modo" = "Mode";
 "Mostra só a tela da VM; as barras voltam ao encostar o mouse no topo. Exige macOS 15 ou mais recente." = "Shows only the VM screen; the bars come back when the pointer touches the top. Requires macOS 15 or later.";
 "Mostra um aviso para escolher entre suspender, cancelar ou sair." = "Shows a prompt to choose between suspending, cancelling or quitting.";
-"Mostrar janela do Windows" = "Show Windows window";
 "Mostrar tela" = "Show screen";
 "Máquinas virtuais" = "Virtual machines";
 "NAT (padrão)" = "NAT (default)";
@@ -232,11 +228,9 @@
 "Rosetta não é suportado neste Mac." = "Rosetta is not supported on this Mac.";
 "Rosetta para Linux não está instalado." = "Rosetta for Linux is not installed.";
 "Sair sem suspender" = "Quit without suspending";
-"Salva o estado das VMs e fecha. VMs Windows ou com rede personalizada não podem ser suspensas e são desligadas na hora." = "Saves the VMs' state and quits. Windows VMs or VMs with a custom network can't be suspended and are shut down immediately.";
 "Salva o estado e desliga" = "Saves the state and shuts down";
 "Salva o estado e desliga; ao iniciar, volta de onde parou" = "Saves the state and shuts down; when started, it picks up where it left off";
 "Salvar" = "Save";
-"Sem internet. Só o Mac alcança a VM, pelo IP fixo %@. Bom para laboratório isolado." = "No internet. Only the Mac reaches the VM, at fixed IP %@. Good for an isolated lab.";
 "Senha" = "Password";
 "Senha incorreta (ou o cofre já está em uso)." = "Wrong password (or the vault is already in use).";
 "Senha incorreta." = "Wrong password.";
@@ -446,3 +440,10 @@
 "O instalador baixado não contém o VM Guave." = "The downloaded installer doesn't contain VM Guave.";
 "Pular esta versão" = "Skip this version";
 "Reiniciar e atualizar" = "Restart and update";
+"\n\nNão podem ser suspensas (rede personalizada) e serão desligadas na hora: %@. Desligue-as pelo sistema convidado antes, se possível." = "\n\nThese can't be suspended (custom network) and will be shut down immediately: %@. If possible, shut them down from the guest system first.";
+"A porta %u do Mac já é redirecionada para \"%@\", que está na mesma rede. Escolha outra porta." = "Mac port %u is already forwarded to \"%@\", which is on the same network. Choose another port.";
+"A rede desta VM já está em uso por outra VM com regras antigas. Desligue todas as VMs desta rede e ligue de novo para aplicar o IP fixo e os redirecionamentos." = "This VM's network is already in use by another VM with old rules. Shut down every VM on this network and start them again to apply the fixed IP and port forwarding.";
+"Internet pelo Mac, IP fixo %@ e redirecionamento de portas. As VMs neste modo ficam na mesma rede e se enxergam." = "Internet through the Mac, fixed IP %@ and port forwarding. VMs in this mode share the same network and can reach each other.";
+"Salva o estado das VMs e fecha. VMs Linux e macOS com rede personalizada não podem ser suspensas e são desligadas na hora." = "Saves the VMs' state and quits. Linux and macOS VMs with a custom network can't be suspended and are shut down immediately.";
+"Sem internet. Só o Mac e as outras VMs neste modo alcançam a VM, pelo IP fixo %@. Bom para laboratório isolado." = "No internet. Only the Mac and the other VMs in this mode can reach the VM, at the fixed IP %@. Good for an isolated lab.";
+"tempo esgotado" = "timed out";

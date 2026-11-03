@@ -1,7 +1,6 @@
 /* VM Guave — ja. Gerado a partir do texto-fonte em pt-BR; confira com ./scripts/strings.py check */
 
 "" = "";
-"\n\nNão podem ser suspensas (Windows ou rede personalizada) e serão desligadas na hora: %@. Desligue-as pelo sistema convidado antes, se possível." = "\n\n次の VM はサスペンドできないため（Windows またはカスタムネットワーク）、すぐにシャットダウンされます: %@。可能であれば、先にゲスト OS からシャットダウンしてください。";
 "\"%@\" está em execução" = "“%@”は実行中です";
 "%@ (cópia)" = "%@（コピー）";
 "%@ falhou: %@" = "%@ が失敗しました: %@";
@@ -21,8 +20,7 @@
 "A VM está suspensa: o snapshot inclui a memória e restaura com os programas abertos." = "VM はサスペンド中です: スナップショットにはメモリが含まれ、プログラムを開いた状態で復元されます。";
 "A conversão usa o qemu-img. %@" = "変換には qemu-img を使用します。%@";
 "A instalação usa o arquivo escolhido." = "インストールには選択したファイルを使用します。";
-"A tela do Windows abre numa janela própria do QEMU." = "Windows の画面は QEMU 専用のウインドウで開きます。";
-"A tela do Windows abre numa janela própria do QEMU. Ao iniciar a instalação, aperte uma tecla quando aparecer \"Press any key to boot from CD\". A rede só funciona depois de instalar os drivers do CD virtio-win (pasta NetKVM/w11/ARM64)." = "Windows の画面は QEMU 専用のウインドウで開きます。インストールの開始時に “Press any key to boot from CD” と表示されたら、いずれかのキーを押してください。ネットワークは virtio-win CD のドライバ（フォルダ NetKVM/w11/ARM64）をインストールした後に使えるようになります。";
+"A tela do Windows aparece na janela da VM, como nas outras VMs. Ao iniciar a instalação, aperte uma tecla quando aparecer \"Press any key to boot from CD\". A rede só funciona depois de instalar os drivers do CD virtio-win (pasta NetKVM/w11/ARM64)." = "Windows の画面は、ほかの VM と同じく VM のウインドウに表示されます。インストールの開始時に “Press any key to boot from CD” と表示されたら、いずれかのキーを押してください。ネットワークは virtio-win CD のドライバ（フォルダ NetKVM/w11/ARM64）をインストールした後に使えるようになります。";
 "Adicionar" = "追加";
 "Adicionar redirecionamento" = "転送ルールを追加";
 "Ao fechar com VMs ligadas" = "VM の実行中に終了するとき";
@@ -149,7 +147,6 @@
 "Instalação" = "インストール";
 "Instale com: brew install qemu swtpm" = "インストール方法: brew install qemu swtpm";
 "Integração e isolamento" = "連携と分離";
-"Internet pelo Mac, IP fixo %@ e redirecionamento de portas." = "Mac 経由のインターネット、固定 IP %@、ポート転送。";
 "Janela pequena, sempre visível, em todos os espaços" = "小さなウインドウを常に表示（すべての操作スペース）";
 "Ligar as VMs marcadas para iniciar sozinhas" = "自動起動に設定された VM を起動する";
 "Linux" = "Linux";
@@ -162,7 +159,6 @@
 "Modo" = "モード";
 "Mostra só a tela da VM; as barras voltam ao encostar o mouse no topo. Exige macOS 15 ou mais recente." = "VM の画面だけを表示します。ポインタを上端に移動するとバーが再表示されます。macOS 15 以降が必要です。";
 "Mostra um aviso para escolher entre suspender, cancelar ou sair." = "サスペンド、キャンセル、終了から選ぶ確認を表示します。";
-"Mostrar janela do Windows" = "Windows のウインドウを表示";
 "Mostrar tela" = "画面を表示";
 "Máquinas virtuais" = "仮想マシン";
 "NAT (padrão)" = "NAT（デフォルト）";
@@ -232,11 +228,9 @@
 "Rosetta não é suportado neste Mac." = "この Mac では Rosetta はサポートされていません。";
 "Rosetta para Linux não está instalado." = "Linux 用 Rosetta がインストールされていません。";
 "Sair sem suspender" = "サスペンドせずに終了";
-"Salva o estado das VMs e fecha. VMs Windows ou com rede personalizada não podem ser suspensas e são desligadas na hora." = "VM の状態を保存して終了します。Windows VM やカスタムネットワークの VM はサスペンドできないため、すぐにシャットダウンされます。";
 "Salva o estado e desliga" = "状態を保存してシャットダウン";
 "Salva o estado e desliga; ao iniciar, volta de onde parou" = "状態を保存してシャットダウンします。次回の起動時は中断したところから再開します";
 "Salvar" = "保存";
-"Sem internet. Só o Mac alcança a VM, pelo IP fixo %@. Bom para laboratório isolado." = "インターネットなし。固定 IP %@ で Mac からのみ VM にアクセスできます。隔離されたラボに最適です。";
 "Senha" = "パスワード";
 "Senha incorreta (ou o cofre já está em uso)." = "パスワードが正しくありません（またはボールトがすでに使用中です）。";
 "Senha incorreta." = "パスワードが正しくありません。";
@@ -446,3 +440,10 @@
 "O instalador baixado não contém o VM Guave." = "ダウンロードしたインストーラに VM Guave が含まれていません。";
 "Pular esta versão" = "このバージョンをスキップ";
 "Reiniciar e atualizar" = "再起動してアップデート";
+"\n\nNão podem ser suspensas (rede personalizada) e serão desligadas na hora: %@. Desligue-as pelo sistema convidado antes, se possível." = "\n\n次の VM はサスペンドできないため（カスタムネットワーク）、すぐにシャットダウンされます: %@。可能であれば、先にゲスト OS からシャットダウンしてください。";
+"A porta %u do Mac já é redirecionada para \"%@\", que está na mesma rede. Escolha outra porta." = "Mac のポート %u は、同じネットワークにある「%@」にすでに転送されています。別のポートを選んでください。";
+"A rede desta VM já está em uso por outra VM com regras antigas. Desligue todas as VMs desta rede e ligue de novo para aplicar o IP fixo e os redirecionamentos." = "この VM のネットワークは、古いルールのまま別の VM が使用中です。このネットワークの VM をすべてシャットダウンしてから起動し直すと、固定 IP とポート転送が反映されます。";
+"Internet pelo Mac, IP fixo %@ e redirecionamento de portas. As VMs neste modo ficam na mesma rede e se enxergam." = "Mac 経由のインターネット、固定 IP %@、ポート転送。このモードの VM は同じネットワークに入り、互いに通信できます。";
+"Salva o estado das VMs e fecha. VMs Linux e macOS com rede personalizada não podem ser suspensas e são desligadas na hora." = "VM の状態を保存して終了します。カスタムネットワークの Linux と macOS の VM はサスペンドできないため、すぐにシャットダウンされます。";
+"Sem internet. Só o Mac e as outras VMs neste modo alcançam a VM, pelo IP fixo %@. Bom para laboratório isolado." = "インターネットなし。Mac とこのモードのほかの VM だけが、固定 IP %@ で VM に接続できます。隔離されたラボに最適です。";
+"tempo esgotado" = "タイムアウトしました";

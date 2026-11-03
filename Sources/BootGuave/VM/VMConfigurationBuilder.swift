@@ -2,6 +2,7 @@ import Foundation
 import Virtualization
 
 /// Traduz um VMConfig numa VZVirtualMachineConfiguration pronta para rodar.
+@MainActor
 enum VMConfigurationBuilder {
     static func build(for config: VMConfig, bundle: VMBundle) throws -> VZVirtualMachineConfiguration {
         let vz = VZVirtualMachineConfiguration()

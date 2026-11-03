@@ -1,7 +1,6 @@
 /* VM Guave — it. Gerado a partir do texto-fonte em pt-BR; confira com ./scripts/strings.py check */
 
 "" = "";
-"\n\nNão podem ser suspensas (Windows ou rede personalizada) e serão desligadas na hora: %@. Desligue-as pelo sistema convidado antes, se possível." = "\n\nNon possono essere sospese (Windows o rete personalizzata) e verranno spente subito: %@. Se possibile, spegnile prima dal sistema guest.";
 "\"%@\" está em execução" = "«%@» è in esecuzione";
 "%@ (cópia)" = "%@ (copia)";
 "%@ falhou: %@" = "%@ non riuscito: %@";
@@ -21,8 +20,7 @@
 "A VM está suspensa: o snapshot inclui a memória e restaura com os programas abertos." = "La VM è sospesa: l'istantanea include la memoria e si ripristina con i programmi aperti.";
 "A conversão usa o qemu-img. %@" = "La conversione usa qemu-img. %@";
 "A instalação usa o arquivo escolhido." = "L'installazione usa il file scelto.";
-"A tela do Windows abre numa janela própria do QEMU." = "Lo schermo di Windows si apre in una finestra separata di QEMU.";
-"A tela do Windows abre numa janela própria do QEMU. Ao iniciar a instalação, aperte uma tecla quando aparecer \"Press any key to boot from CD\". A rede só funciona depois de instalar os drivers do CD virtio-win (pasta NetKVM/w11/ARM64)." = "Lo schermo di Windows si apre in una finestra separata di QEMU. All'avvio dell'installazione, premi un tasto quando appare «Press any key to boot from CD». La rete funziona solo dopo aver installato i driver dal CD virtio-win (cartella NetKVM/w11/ARM64).";
+"A tela do Windows aparece na janela da VM, como nas outras VMs. Ao iniciar a instalação, aperte uma tecla quando aparecer \"Press any key to boot from CD\". A rede só funciona depois de instalar os drivers do CD virtio-win (pasta NetKVM/w11/ARM64)." = "Lo schermo di Windows appare nella finestra della VM, come per le altre VM. All'avvio dell'installazione, premi un tasto quando appare «Press any key to boot from CD». La rete funziona solo dopo aver installato i driver dal CD virtio-win (cartella NetKVM/w11/ARM64).";
 "Adicionar" = "Aggiungi";
 "Adicionar redirecionamento" = "Aggiungi inoltro";
 "Ao fechar com VMs ligadas" = "Alla chiusura con VM accese";
@@ -149,7 +147,6 @@
 "Instalação" = "Installazione";
 "Instale com: brew install qemu swtpm" = "Installa con: brew install qemu swtpm";
 "Integração e isolamento" = "Integrazione e isolamento";
-"Internet pelo Mac, IP fixo %@ e redirecionamento de portas." = "Internet tramite il Mac, IP fisso %@ e inoltro delle porte.";
 "Janela pequena, sempre visível, em todos os espaços" = "Finestra piccola, sempre visibile, su tutte le scrivanie";
 "Ligar as VMs marcadas para iniciar sozinhas" = "Accendi le VM impostate per l'avvio automatico";
 "Linux" = "Linux";
@@ -162,7 +159,6 @@
 "Modo" = "Modalità";
 "Mostra só a tela da VM; as barras voltam ao encostar o mouse no topo. Exige macOS 15 ou mais recente." = "Mostra solo lo schermo della VM; le barre tornano avvicinando il puntatore al bordo superiore. Richiede macOS 15 o successivo.";
 "Mostra um aviso para escolher entre suspender, cancelar ou sair." = "Mostra un avviso per scegliere tra sospendere, annullare o uscire.";
-"Mostrar janela do Windows" = "Mostra finestra di Windows";
 "Mostrar tela" = "Mostra schermo";
 "Máquinas virtuais" = "Macchine virtuali";
 "NAT (padrão)" = "NAT (predefinita)";
@@ -232,11 +228,9 @@
 "Rosetta não é suportado neste Mac." = "Rosetta non è supportato su questo Mac.";
 "Rosetta para Linux não está instalado." = "Rosetta per Linux non è installato.";
 "Sair sem suspender" = "Esci senza sospendere";
-"Salva o estado das VMs e fecha. VMs Windows ou com rede personalizada não podem ser suspensas e são desligadas na hora." = "Salva lo stato delle VM e chiude. Le VM Windows o con rete personalizzata non possono essere sospese e vengono spente subito.";
 "Salva o estado e desliga" = "Salva lo stato e spegne";
 "Salva o estado e desliga; ao iniciar, volta de onde parou" = "Salva lo stato e spegne; all'avvio riprende da dove si era fermata";
 "Salvar" = "Salva";
-"Sem internet. Só o Mac alcança a VM, pelo IP fixo %@. Bom para laboratório isolado." = "Niente Internet. Solo il Mac raggiunge la VM, all'IP fisso %@. Ideale per un laboratorio isolato.";
 "Senha" = "Password";
 "Senha incorreta (ou o cofre já está em uso)." = "Password errata (o la cassaforte è già in uso).";
 "Senha incorreta." = "Password errata.";
@@ -446,3 +440,10 @@
 "O instalador baixado não contém o VM Guave." = "Il programma di installazione scaricato non contiene VM Guave.";
 "Pular esta versão" = "Salta questa versione";
 "Reiniciar e atualizar" = "Riavvia e aggiorna";
+"\n\nNão podem ser suspensas (rede personalizada) e serão desligadas na hora: %@. Desligue-as pelo sistema convidado antes, se possível." = "\n\nNon possono essere sospese (rete personalizzata) e verranno spente subito: %@. Se possibile, spegnile prima dal sistema ospite.";
+"A porta %u do Mac já é redirecionada para \"%@\", que está na mesma rede. Escolha outra porta." = "La porta %u del Mac è già inoltrata a \"%@\", che è sulla stessa rete. Scegli un’altra porta.";
+"A rede desta VM já está em uso por outra VM com regras antigas. Desligue todas as VMs desta rede e ligue de novo para aplicar o IP fixo e os redirecionamentos." = "La rete di questa VM è già usata da un’altra VM con regole vecchie. Spegni tutte le VM di questa rete e riaccendile per applicare l’IP fisso e gli inoltri.";
+"Internet pelo Mac, IP fixo %@ e redirecionamento de portas. As VMs neste modo ficam na mesma rede e se enxergam." = "Internet tramite il Mac, IP fisso %@ e inoltro delle porte. Le VM in questa modalità sono sulla stessa rete e si vedono tra loro.";
+"Salva o estado das VMs e fecha. VMs Linux e macOS com rede personalizada não podem ser suspensas e são desligadas na hora." = "Salva lo stato delle VM ed esce. Le VM Linux e macOS con rete personalizzata non possono essere sospese e vengono spente subito.";
+"Sem internet. Só o Mac e as outras VMs neste modo alcançam a VM, pelo IP fixo %@. Bom para laboratório isolado." = "Niente internet. Solo il Mac e le altre VM in questa modalità raggiungono la VM, all’IP fisso %@. Ideale per un laboratorio isolato.";
+"tempo esgotado" = "tempo scaduto";

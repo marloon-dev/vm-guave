@@ -1,7 +1,6 @@
 /* VM Guave — zh-Hans. Gerado a partir do texto-fonte em pt-BR; confira com ./scripts/strings.py check */
 
 "" = "";
-"\n\nNão podem ser suspensas (Windows ou rede personalizada) e serão desligadas na hora: %@. Desligue-as pelo sistema convidado antes, se possível." = "\n\n以下虚拟机无法挂起（Windows 或自定义网络），将立即关机：%@。如有可能，请先在客户机系统中关机。";
 "\"%@\" está em execução" = "“%@”正在运行";
 "%@ (cópia)" = "%@（副本）";
 "%@ falhou: %@" = "%@ 失败：%@";
@@ -21,8 +20,7 @@
 "A VM está suspensa: o snapshot inclui a memória e restaura com os programas abertos." = "虚拟机已挂起：快照包含内存，恢复后程序仍保持打开。";
 "A conversão usa o qemu-img. %@" = "转换使用 qemu-img。%@";
 "A instalação usa o arquivo escolhido." = "安装将使用所选文件。";
-"A tela do Windows abre numa janela própria do QEMU." = "Windows 画面会在单独的 QEMU 窗口中打开。";
-"A tela do Windows abre numa janela própria do QEMU. Ao iniciar a instalação, aperte uma tecla quando aparecer \"Press any key to boot from CD\". A rede só funciona depois de instalar os drivers do CD virtio-win (pasta NetKVM/w11/ARM64)." = "Windows 画面会在单独的 QEMU 窗口中打开。开始安装时，看到“Press any key to boot from CD”后请按任意键。安装 virtio-win 光盘中的驱动程序（文件夹 NetKVM/w11/ARM64）后网络才能使用。";
+"A tela do Windows aparece na janela da VM, como nas outras VMs. Ao iniciar a instalação, aperte uma tecla quando aparecer \"Press any key to boot from CD\". A rede só funciona depois de instalar os drivers do CD virtio-win (pasta NetKVM/w11/ARM64)." = "Windows 画面会像其他虚拟机一样显示在虚拟机窗口中。开始安装时，看到“Press any key to boot from CD”后请按任意键。安装 virtio-win 光盘中的驱动程序（文件夹 NetKVM/w11/ARM64）后网络才能使用。";
 "Adicionar" = "添加";
 "Adicionar redirecionamento" = "添加转发规则";
 "Ao fechar com VMs ligadas" = "退出时仍有虚拟机在运行";
@@ -149,7 +147,6 @@
 "Instalação" = "安装";
 "Instale com: brew install qemu swtpm" = "安装命令：brew install qemu swtpm";
 "Integração e isolamento" = "集成与隔离";
-"Internet pelo Mac, IP fixo %@ e redirecionamento de portas." = "通过 Mac 上网，固定 IP %@，并支持端口转发。";
 "Janela pequena, sempre visível, em todos os espaços" = "小窗口，始终可见，出现在所有空间中";
 "Ligar as VMs marcadas para iniciar sozinhas" = "启动已设为自动启动的虚拟机";
 "Linux" = "Linux";
@@ -162,7 +159,6 @@
 "Modo" = "模式";
 "Mostra só a tela da VM; as barras voltam ao encostar o mouse no topo. Exige macOS 15 ou mais recente." = "只显示虚拟机画面；指针移到顶部时栏会重新出现。需要 macOS 15 或更高版本。";
 "Mostra um aviso para escolher entre suspender, cancelar ou sair." = "显示提示，让你选择挂起、取消或退出。";
-"Mostrar janela do Windows" = "显示 Windows 窗口";
 "Mostrar tela" = "显示画面";
 "Máquinas virtuais" = "虚拟机";
 "NAT (padrão)" = "NAT（默认）";
@@ -232,11 +228,9 @@
 "Rosetta não é suportado neste Mac." = "此 Mac 不支持 Rosetta。";
 "Rosetta para Linux não está instalado." = "未安装 Linux 版 Rosetta。";
 "Sair sem suspender" = "退出且不挂起";
-"Salva o estado das VMs e fecha. VMs Windows ou com rede personalizada não podem ser suspensas e são desligadas na hora." = "保存虚拟机状态后退出。Windows 虚拟机或使用自定义网络的虚拟机无法挂起，会立即关机。";
 "Salva o estado e desliga" = "保存状态并关机";
 "Salva o estado e desliga; ao iniciar, volta de onde parou" = "保存状态并关机；下次启动时从中断处继续";
 "Salvar" = "保存";
-"Sem internet. Só o Mac alcança a VM, pelo IP fixo %@. Bom para laboratório isolado." = "无法上网。只有 Mac 能通过固定 IP %@ 访问虚拟机。适合隔离的实验环境。";
 "Senha" = "密码";
 "Senha incorreta (ou o cofre já está em uso)." = "密码不正确（或保险库已在使用中）。";
 "Senha incorreta." = "密码不正确。";
@@ -446,3 +440,10 @@
 "O instalador baixado não contém o VM Guave." = "下载的安装器中不包含 VM Guave。";
 "Pular esta versão" = "跳过此版本";
 "Reiniciar e atualizar" = "重新启动并更新";
+"\n\nNão podem ser suspensas (rede personalizada) e serão desligadas na hora: %@. Desligue-as pelo sistema convidado antes, se possível." = "\n\n以下虚拟机无法挂起（自定义网络），将立即关闭：%@。如果可以，请先在客户机系统中关机。";
+"A porta %u do Mac já é redirecionada para \"%@\", que está na mesma rede. Escolha outra porta." = "Mac 端口 %u 已转发到同一网络中的“%@”。请选择其他端口。";
+"A rede desta VM já está em uso por outra VM com regras antigas. Desligue todas as VMs desta rede e ligue de novo para aplicar o IP fixo e os redirecionamentos." = "此虚拟机的网络正被另一台使用旧规则的虚拟机占用。请关闭此网络中的所有虚拟机后重新启动，以应用固定 IP 和端口转发。";
+"Internet pelo Mac, IP fixo %@ e redirecionamento de portas. As VMs neste modo ficam na mesma rede e se enxergam." = "通过 Mac 上网，固定 IP %@，支持端口转发。此模式下的虚拟机位于同一网络，可以互相访问。";
+"Salva o estado das VMs e fecha. VMs Linux e macOS com rede personalizada não podem ser suspensas e são desligadas na hora." = "保存虚拟机状态并退出。使用自定义网络的 Linux 和 macOS 虚拟机无法挂起，会立即关闭。";
+"Sem internet. Só o Mac e as outras VMs neste modo alcançam a VM, pelo IP fixo %@. Bom para laboratório isolado." = "无法上网。只有 Mac 和此模式下的其他虚拟机能通过固定 IP %@ 访问此虚拟机。适合隔离的实验环境。";
+"tempo esgotado" = "超时";

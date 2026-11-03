@@ -33,7 +33,7 @@ enum NetworkMode: String, Codable, CaseIterable, Identifiable {
     case nat
     /// Rede própria com internet, IP fixo e redirecionamento de portas (vmnet).
     case shared
-    /// Rede isolada: só o Mac (e outras VMs na mesma rede) enxergam a VM, sem internet.
+    /// Rede isolada: só o Mac e as outras VMs na mesma rede enxergam a VM, sem internet.
     case hostOnly
 
     var id: String { rawValue }
@@ -85,8 +85,11 @@ struct VMConfig: Codable, Identifiable, Hashable {
     /// macOS: false até o VZMacOSInstaller terminar.
     var macOSInstalled: Bool = false
     var networkMode: NetworkMode = .nat
-    /// Rede /24 própria da VM nos modos vmnet (ex.: "192.168.201.0"); a VM fica sempre no .2.
+    /// Rede /24 da VM nos modos vmnet (ex.: "192.168.201.0"). VMs no mesmo modo e na mesma
+    /// sub-rede ficam na mesma rede e se enxergam.
     var networkSubnet: String?
+    /// Último número do IP fixo na sub-rede (nil = 2, o padrão das VMs de antes).
+    var networkHost: Int?
     var portForwards: [PortForward] = []
     /// Disco e arquivos da máquina ficam numa imagem criptografada (vault.sparsebundle).
     var encrypted: Bool = false
@@ -121,15 +124,31 @@ extension VMConfig {
         macOSInstalled = try c.decodeIfPresent(Bool.self, forKey: .macOSInstalled) ?? false
         networkMode = try c.decodeIfPresent(NetworkMode.self, forKey: .networkMode) ?? .nat
         networkSubnet = try c.decodeIfPresent(String.self, forKey: .networkSubnet)
+        networkHost = try c.decodeIfPresent(Int.self, forKey: .networkHost)
         portForwards = try c.decodeIfPresent([PortForward].self, forKey: .portForwards) ?? []
         encrypted = try c.decodeIfPresent(Bool.self, forKey: .encrypted) ?? false
         driversISOPath = try c.decodeIfPresent(String.self, forKey: .driversISOPath)
     }
 
+    var networkHostNumber: Int { networkHost ?? 2 }
+
     /// IP fixo da VM nos modos vmnet.
     var guestIPAddress: String? {
         guard networkMode != .nat, let subnet = networkSubnet else { return nil }
-        return subnet.split(separator: ".").prefix(3).joined(separator: ".") + ".2"
+        return subnet.split(separator: ".").prefix(3).joined(separator: ".") + ".\(networkHostNumber)"
+    }
+
+    /// Dá sub-rede e IP fixo a uma VM que entrou num modo vmnet (ou trocou de modo);
+    /// no NAT, limpa. Uma VM que já tem endereço nesse modo continua com ele.
+    mutating func assignNetworkAddress(previousMode: NetworkMode?, among configs: [VMConfig]) {
+        guard networkMode != .nat, !os.usesQEMU else {
+            if networkMode == .nat { networkSubnet = nil; networkHost = nil }
+            return
+        }
+        if networkSubnet != nil && previousMode == networkMode { return }
+        let address = VMNetworkFactory.allocateAddress(for: self, among: configs)
+        networkSubnet = address.subnet
+        networkHost = address.host
     }
 }
 
