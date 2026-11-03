@@ -139,7 +139,7 @@
           <li class="feature reveal">
             <span class="f-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></svg></span>
             <h3>Suspender e retomar</h3>
-            <p>Feche o app e continue depois exatamente de onde parou, com os programas abertos.</p>
+            <p>Feche o app e continue depois exatamente de onde parou, com os programas abertos. Também no Windows.</p>
             <span class="tag">Mac</span>
           </li>
           <li class="feature reveal">
@@ -151,7 +151,7 @@
           <li class="feature reveal">
             <span class="f-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="m8.2 11 7.6-3.8M8.2 13l7.6 3.8"/></svg></span>
             <h3>Rede e portas</h3>
-            <p>Internet pronta para uso, IP fixo e redirecionamento de portas para acessar serviços da VM.</p>
+            <p>Internet pronta para uso, IP fixo, redirecionamento de portas e várias VMs na mesma rede de laboratório.</p>
           </li>
           <li class="feature reveal">
             <span class="f-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M12 11v5M9.5 13.5 12 16l2.5-2.5"/></svg></span>
@@ -205,11 +205,32 @@
       </div>
     </section>
 
-    <!-- NOVIDADES DA 0.3.0 -->
-    <section class="section section-alt" id="novidades" aria-labelledby="novidades-titulo">
+    <!-- NOVIDADES DA 0.4.0 -->
+    <section class="section" id="novidades" aria-labelledby="novidades-04-titulo">
       <div class="container">
         <header class="section-head reveal">
-          <p class="eyebrow">Novo na versão 0.3.0</p>
+          <p class="eyebrow">Novo na versão 0.4.0</p>
+          <h2 id="novidades-04-titulo">Windows dentro do app, mais rápido e mais seguro</h2>
+          <p>A tela do Windows agora fica na janela do VM Guave, as VMs podem formar uma rede de laboratório e o app ficou mais leve e mais protegido.</p>
+        </header>
+
+        <ul class="checklist news reveal">
+          <li><strong>Windows na janela do app.</strong> A tela do Windows aparece na mesma janela das VMs Linux e macOS, com pausar, suspender, Picture in Picture e tela cheia com <kbd>⌘</kbd><kbd>F</kbd>.</li>
+          <li><strong>Suspender o Windows.</strong> Feche o app ou clique em Suspender: o Windows volta de onde parou, com os programas abertos.</li>
+          <li><strong>Laboratório com várias VMs.</strong> As VMs no mesmo modo de rede ficam na mesma rede, cada uma com seu IP fixo, e se enxergam.</li>
+          <li><strong>Discos mais rápidos.</strong> Gravações bem mais rápidas nas VMs Linux e macOS e menos leituras de disco no Windows.</li>
+          <li><strong>Memória devolvida ao Mac.</strong> Quando o Mac fica sem RAM, as VMs Linux devolvem parte da memória e recuperam tudo depois.</li>
+          <li><strong>Mais seguro.</strong> Atualizações com assinatura digital, ISOs conferidas com o código oficial de cada distribuição, portas do Windows abertas só no seu Mac e VMs importadas sem acesso aos seus arquivos.</li>
+          <li><strong>Botões com animação.</strong> Tudo o que é clicável responde ao passar o mouse.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- AS SEIS SEÇÕES DO APP (0.3.0) -->
+    <section class="section section-alt" id="secoes" aria-labelledby="novidades-titulo">
+      <div class="container">
+        <header class="section-head reveal">
+          <p class="eyebrow">Conheça o app</p>
           <h2 id="novidades-titulo">Seis seções, tudo à vista</h2>
           <p>O VM Guave para Mac ganhou uma barra lateral com tudo organizado, no visual da goiaba, nos modos escuro e claro.</p>
         </header>
@@ -387,6 +408,8 @@
               <tr><th scope="row">Redirecionamento de portas</th><td class="yes">Sim</td><td class="yes">Sim</td></tr>
               <tr><th scope="row">Suspender e retomar</th><td class="yes">Sim</td><td class="no">Não</td></tr>
               <tr><th scope="row">Criptografia, clonar, exportar</th><td class="yes">Sim</td><td class="no">Não</td></tr>
+              <tr><th scope="row">Tela do Windows na janela do app</th><td class="yes">Sim</td><td class="no">Não</td></tr>
+              <tr><th scope="row">Várias VMs na mesma rede</th><td class="yes">Sim</td><td class="no">Não</td></tr>
               <tr><th scope="row">Pasta compartilhada e área de transferência</th><td class="yes">Sim</td><td class="no">Não</td></tr>
               <tr><th scope="row">Painel com Visão Geral, Imagens, Rede e Armazenamento</th><td class="yes">Sim</td><td class="no">Não</td></tr>
               <tr><th scope="row">Idiomas da interface</th><td class="yes">11 idiomas</td><td>Português</td></tr>
@@ -500,7 +523,7 @@
           </details>
           <details>
             <summary>Como atualizo o VM Guave?</summary>
-            <p>No Mac, a partir da versão 0.3.0, o app avisa sozinho quando sai uma versão nova: clique em <strong>Atualizar agora</strong> e ele baixa, confere e reinicia já atualizado. Quem está na 0.2.0 instala a 0.3.0 uma vez pelo botão de download desta página. No Windows e no Linux, baixe o instalador novo e instale por cima.</p>
+            <p>No Mac, a partir da versão 0.3.0, o app avisa sozinho quando sai uma versão nova: clique em <strong>Atualizar agora</strong> e ele baixa, confere a assinatura digital e reinicia já atualizado. Quem está na 0.2.0 instala a versão nova uma vez pelo botão de download desta página. No Windows e no Linux, baixe o instalador novo e instale por cima.</p>
           </details>
           <details>
             <summary>O app está disponível em outros idiomas?</summary>
