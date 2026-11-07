@@ -88,6 +88,17 @@
   }
   loadRelease();
 
+  // Conta no GoatCounter cada clique em um download (o arquivo fica no GitHub, então a visita não registra isso).
+  function countDownload(kind) {
+    window.goatcounter?.count?.({ path: `download-${kind}`, title: `Download ${kind}`, event: true });
+  }
+  document.querySelectorAll("[data-asset]").forEach((link) => {
+    link.addEventListener("click", () => countDownload(link.dataset.asset));
+  });
+  heroButton.addEventListener("click", () => {
+    if (heroButton.getAttribute("href").startsWith("http")) countDownload(`${OS_INFO[os].asset}-destaque`);
+  });
+
   // Borda no cabeçalho depois de rolar.
   const header = document.querySelector(".site-header");
   const onScroll = () => header.classList.toggle("scrolled", window.scrollY > 8);
