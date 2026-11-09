@@ -1,5 +1,10 @@
 # VM Guave
 
+[![Release](https://img.shields.io/github/v/release/marloon-dev/vm-guave)](https://github.com/marloon-dev/vm-guave/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/marloon-dev/vm-guave/total)](https://github.com/marloon-dev/vm-guave/releases)
+[![Stars](https://img.shields.io/github/stars/marloon-dev/vm-guave?style=social)](https://github.com/marloon-dev/vm-guave/stargazers)
+[![Licença MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-green)](LICENSE)
+
 Gerenciador de máquinas virtuais para macOS (Apple Silicon), construído do zero sobre o
 `Virtualization.framework` da Apple, em Swift + SwiftUI.
 
@@ -397,3 +402,5 @@ cada sistema; as marcas pertencem aos donos, e o VM Guave não é afiliado a ele
 ## Licença
 
 [MIT](LICENSE) © 2026 Marlon Nunes Vieira
+
+Gostou? Deixe uma ⭐ — ajuda o projeto a chegar a mais gente.
